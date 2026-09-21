@@ -695,9 +695,9 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 }
 /* 왜 이 음료 본문 (노트 박스 · v13 실측 57.1~76.9%) */
 .rs-why {
-  left: 15%; width: 70%; top: 58%; height: 18%; overflow: hidden;
+  left: 14%; width: 72%; top: 57%; height: 20%; overflow: hidden;
   display: flex; align-items: center; justify-content: center; text-align: center;
-  font-size: 3.2cqw; line-height: 1.5; color: #3B2A1E; font-weight: 500;
+  font-size: 3.3cqw; line-height: 1.5; color: #3B2A1E; font-weight: 500;
   word-break: keep-all; text-wrap: pretty;
 }
 
