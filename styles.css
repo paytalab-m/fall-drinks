@@ -978,7 +978,9 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 /* 순위 박스 (v4 주황 박스 y1.6~32.7%) */
 .br-rank { top: 5%; left: 12%; width: 76%; height: 36%; display: flex; flex-direction: column; justify-content: flex-start; }
 .br-rank-title { font-size: 3.5cqw; font-weight: 800; color: var(--orange-dk); text-align: center; padding-bottom: 1cqw; margin-bottom: 2cqw; border-bottom: 2px solid rgba(232,132,60,0.22); }
-.br-rank-list { display: flex; flex-direction: column; gap: 3.6cqw; }
+.br-rank-list { display: flex; flex-direction: column; gap: 3.6cqw; max-height: 30cqw; overflow-y: auto; overscroll-behavior: contain; }
+.br-rank-list::-webkit-scrollbar { width: 3px; }
+.br-rank-list::-webkit-scrollbar-thumb { background: rgba(232,132,60,0.4); border-radius: 3px; }
 .brk-row { display: flex; align-items: center; gap: 2cqw; padding: 0.6cqw 0; }
 .brk-row.mine { background: #FFE4C2; border: 1.5px solid var(--orange); border-radius: 2.4cqw; padding: 1cqw 1.8cqw; }
 .brk-medal { flex: 0 0 auto; width: 5cqw; text-align: center; font-size: 3.3cqw; font-weight: 800; color: var(--ink-soft); }

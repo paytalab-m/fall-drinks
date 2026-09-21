@@ -797,6 +797,7 @@ function renderBLoading(app, p) {
   preloadImg('assets/result-skins/scenario-b-result-skin-blank-v7.png');
   preloadImg('assets/result-skins/scenario-b-result-skin-10-50-blank-v7.png');
   preloadImg('assets/result-skins/scenario-b-result-extension-blank-v8.png');
+  syncBoard(ownerId); // 순위판 미리 당겨오기 → b-result 진입 시 이전 참여자 즉시 표시
   app.innerHTML = `
     <div class="page center" style="justify-content:center">
       <div class="loader-frames">
@@ -826,7 +827,7 @@ function renderBResult(app, p) {
   // 참여 결과 저장 — 이 링크(ownerId)에 아직 참여 안 했을 때만 1회 기록.
   // (b결과 새로고침·재진입해도 순위판에 중복으로 안 찍힘. revisit 플래그와 무관하게 기록 존재로 판정)
   if (!LS.get(participatedKey(ownerId))) {
-    const entry = { bnick: myNick, topping, score: r.score, blendName: r.blendName, menu: r.menu };
+    const entry = { bnick: myNick, topping, score: r.score, blendName: r.blendName, menu: r.menu, vid: getVid() };
     LS.set(participatedKey(ownerId), { topping, bnick: myNick, score: r.score, blendName: r.blendName });
     addToBoard(ownerId, entry);
     postParticipation(ownerId, entry); // 원격(다른 기기 합산)에도 기록
@@ -837,20 +838,20 @@ function renderBResult(app, p) {
   const skin = low ? 'scenario-b-result-skin-10-50-blank-v7' : 'scenario-b-result-skin-blank-v7';
   const arc = r.score >= 60 ? 'var(--orange)' : r.score >= 20 ? 'var(--gold)' : 'var(--maple)';
 
-  // 순위: A(친구) 보드에서 내 순위
+  // 순위: A(친구) 보드에서 내 순위. 나 = vid 기준. 전체 렌더 → 많으면 목록이 스크롤됨.
+  const myVid = getVid();
   const board = getBoard(ownerId).slice().sort((a, b) => b.score - a.score);
-  const myIdx = board.findIndex(e => e.bnick === myNick && e.topping === topping && e.score === r.score);
+  const myIdx = board.findIndex(e => e.vid === myVid);
   const myRank = myIdx >= 0 ? myIdx + 1 : board.length;
   const total = board.length;
   const rankRow = (rank, chip, nick, blend, score, a2, mine) =>
     `<div class="brk-row${mine ? ' mine' : ''}"><span class="brk-medal">${rank}</span><span class="brk-chip">${chip}</span><span class="brk-info"><b>${nick}</b> · ${blend}</span><span class="brk-score" style="color:${a2}">${score}%</span></div>`;
   const medals = ['🥇', '🥈', '🥉'];
-  let rankRows = board.slice(0, 3).map((e, i) => {
+  const rankRows = board.map((e, i) => {
     const tp = TOPPINGS.find(t => t.id === e.topping);
     const a2 = e.score >= 60 ? 'var(--orange)' : e.score >= 20 ? 'var(--gold)' : 'var(--maple)';
-    return rankRow(medals[i], tp ? toppingImg(tp) : '', (i === myIdx ? e.bnick + ' (나)' : e.bnick), e.blendName, e.score, a2, i === myIdx);
+    return rankRow(i < 3 ? medals[i] : String(i + 1), tp ? toppingImg(tp) : '', (i === myIdx ? e.bnick + ' (나)' : e.bnick), e.blendName, e.score, a2, i === myIdx);
   }).join('');
-  if (myIdx >= 3) rankRows += rankRow(myRank, toppingImg(top), myNick + ' (나)', r.blendName, r.score, arc, true);
 
   app.innerHTML = `
     <div class="bresult2">
@@ -908,9 +909,11 @@ function participatedKey(ownerId) { return `passorder_participated_${ownerId}`; 
 const BOARD_API = 'https://script.google.com/macros/s/AKfycbxx-zfWyKQjAw_bSEqs3hnByygbXdHrk52w6slhRQc1kb-s1V02tCwh6OiOD9_c74xr1A/exec';
 function boardKey(ownerId) { return `passorder_board_${ownerId}`; }
 function addToBoard(ownerId, entry) {
-  const list = LS.get(boardKey(ownerId)) || [];
-  // 동일 (닉+토핑) 중복 방지
-  if (list.some(e => e.bnick === entry.bnick && e.topping === entry.topping)) return;
+  // 같은 사람(vid) 이전 기록은 지우고 새로 추가 = 덮어쓰기. vid 없으면 닉+토핑 기준.
+  const same = entry.vid != null
+    ? (e => e.vid === entry.vid)
+    : (e => e.bnick === entry.bnick && e.topping === entry.topping);
+  const list = (LS.get(boardKey(ownerId)) || []).filter(e => !same(e));
   list.push({ ...entry, at: Date.now() });
   LS.set(boardKey(ownerId), list);
 }
@@ -919,17 +922,20 @@ function getBoard(ownerId) {
   return LS.get(boardKey(ownerId)) || [];
 }
 
-// 원격(다른 기기) 참여를 로컬에 병합 · 중복(닉+토핑) 제거. 변경되면 true
+// 원격 참여를 로컬에 병합. 사람(vid) 기준 덮어쓰기 → 닉 변경 시 최신으로 교체. vid 없으면 닉+토핑 기준.
 function mergeBoard(ownerId, remote) {
-  const list = getBoard(ownerId);
-  const seen = new Set(list.map(e => e.bnick + '|' + e.topping));
+  const keyOf = e => e && (e.vid != null ? 'v:' + e.vid : 'k:' + e.bnick + '|' + e.topping);
+  const map = new Map();
+  getBoard(ownerId).forEach(e => { const k = keyOf(e); if (k) map.set(k, e); });
   let changed = false;
   (remote || []).forEach(e => {
     if (!e || e.bnick == null) return;
-    const k = e.bnick + '|' + e.topping;
-    if (!seen.has(k)) { list.push(e); seen.add(k); changed = true; }
+    const k = keyOf(e), prev = map.get(k);
+    if (!prev || prev.bnick !== e.bnick || prev.topping !== e.topping || prev.score !== e.score) {
+      map.set(k, { ...prev, ...e }); changed = true; // 원격이 최신(서버가 owner_id+vid로 덮어씀)
+    }
   });
-  if (changed) LS.set(boardKey(ownerId), list);
+  if (changed) LS.set(boardKey(ownerId), Array.from(map.values()));
   return changed;
 }
 // 원격 참여 기록(POST) — no-cors + text/plain(프리플라이트 회피). 로컬에도 이미 저장돼 있음
@@ -959,6 +965,7 @@ function renderABoard(app, p) {
   const d = DRINKS[baseDrink];
   if (!ownerId || !d) { stub(app, '순위판 없음', '공유 링크 정보가 없어요.'); return; }
   const aNick = ownerNickFromId(ownerId);
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-board') router(); }); // 진입 즉시 원격 반영
   const list = getBoard(ownerId).slice().sort((a, b) => b.score - a.score);
 
   const rows = list.map((e, i) => {
