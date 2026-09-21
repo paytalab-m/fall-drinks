@@ -82,6 +82,8 @@ function assetURL(p) {
   return IMG_BASE + p.replace(/^[./]+/, '').replace(/\.png(\?[^"']*)?$/i, '.webp');
 }
 function blendImg(baseId, toppingId) { return assetURL(`assets/blends/${baseId}_${toppingId}.png`); }
+// 이미지 미리 받아 캐시에 올려둠(깜빡임·지연 로딩 방지)
+function preloadImg(p) { try { new Image().src = assetURL(p); } catch {} }
 
 /* =========================================================
    4) STATE / UTIL
@@ -291,6 +293,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) refr
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', () => {
   session.entry = new URLSearchParams(location.search).get('utm_source') || 'direct'; // 진입 채널
+  ['assets/loading/1.png','assets/loading/2.png','assets/loading/3.png'].forEach(preloadImg); // 로더 프레임 미리로드(깜빡임 방지)
   router();
   if (location.search.includes('selftest') || location.hash.includes('selftest')) selftest();
 });
@@ -523,6 +526,11 @@ function finishQuiz() {
   session.group = group; session.baseDrink = baseDrink;
   postResult(ownerId, baseDrink); // 내 결과 저장(원격 시트)
 
+  // 결과 화면 이미지 미리로드(로딩 1.6s 동안) → 결과 도달 시 즉시 표시
+  preloadImg(`assets/drinks/${baseDrink}.png`);
+  preloadImg('assets/result-skins/result-skin-blank-v13.png');
+  preloadImg('assets/result-skins/result-skin-extension-blank-v16.png');
+
   // 로딩 화면 → 결과
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -718,6 +726,12 @@ function renderBPick(app, p) { navigate('b-start', p); }
 function renderBLoading(app, p) {
   const { ownerId, baseDrink, topping, bnick } = p;
   if (!ownerId || !baseDrink || !topping) { navigate('b-start', p); return; }
+  // b결과 이미지 미리로드(로딩 1.5s 동안) → 결과 즉시 표시
+  preloadImg(`assets/blends/${baseDrink}_${topping}.png`);
+  preloadImg(`assets/combos/${baseDrink}_${topping}.png`);
+  preloadImg('assets/result-skins/scenario-b-result-skin-blank-v7.png');
+  preloadImg('assets/result-skins/scenario-b-result-skin-10-50-blank-v7.png');
+  preloadImg('assets/result-skins/scenario-b-result-extension-blank-v8.png');
   app.innerHTML = `
     <div class="page center" style="justify-content:center">
       <div class="loader-frames">
