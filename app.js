@@ -767,6 +767,7 @@ function renderBStart(app, p) {
       if (!bRoulette) return;
       clearInterval(bRoulette); bRoulette = null;
       const picked = pool[idx];
+      preloadImg(`assets/blends/${baseDrink}_${picked}.png`); // 큰 blend 이미지(≈160KB) 확정 즉시 미리 받기 → b-result까지 ~2.6s 여유
       stopBtn.disabled = true;
       // 낙하 연출: 토핑이 음료 안으로 풍덩 → 물방울 → 컵 흔들림
       app.querySelector('.bg-topping').classList.add('drop');
