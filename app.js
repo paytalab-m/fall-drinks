@@ -261,17 +261,43 @@ function ensureBackBtn() {
   return b;
 }
 
-// 우상단 다시하기(↻) 버튼 — 결과창에서만 표시, 누르면 처음(a-start)부터
+// 우상단 다시하기(↻) 버튼 — b-result에서만 표시. b결과 다시하기 = 토핑 다시 뽑기(b-start로)
 function ensureRedoBtn() {
   let b = document.getElementById('redoBtn');
   if (!b) {
     b = document.createElement('button');
     b.id = 'redoBtn'; b.className = 'redo-btn'; b.type = 'button';
     b.setAttribute('aria-label', '다시하기'); b.textContent = '↻';
-    b.addEventListener('click', () => { location.hash = 'a-start'; });
+    b.addEventListener('click', () => {
+      const { route, params } = parseHash();
+      if (route === 'b-result' && params.ownerId) {
+        LS.remove(participatedKey(params.ownerId)); // 재참여 허용(안 지우면 b-start가 즉시 b-result로 되돌림)
+        location.hash = 'b-start?' + new URLSearchParams({ ownerId: params.ownerId, baseDrink: params.baseDrink || '' }).toString();
+      } else {
+        location.hash = 'a-start';
+      }
+    });
     document.body.appendChild(b);
   }
   return b;
+}
+
+// 인앱 확인 모달 — 네이티브 confirm()은 앱 웹뷰에서 안 떠서 직접 구현
+function confirmModal(message, okLabel, onOk) {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML =
+    '<div style="background:#fff;border-radius:20px;max-width:320px;width:100%;padding:24px 20px;box-shadow:0 12px 40px rgba(0,0,0,.25)">' +
+      '<div style="font-size:15px;line-height:1.6;color:#2C2C2A;white-space:pre-line;text-align:center;margin-bottom:18px">' + message + '</div>' +
+      '<div style="display:flex;gap:10px">' +
+        '<button class="btn btn-ghost" id="cmCancel" style="flex:1">취소</button>' +
+        '<button class="btn btn-primary" id="cmOk" style="flex:1">' + okLabel + '</button>' +
+      '</div></div>';
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.querySelector('#cmCancel').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.querySelector('#cmOk').addEventListener('click', () => { close(); onOk(); });
 }
 
 const RESULT_ROUTES = ['a-result', 'b-result'];
@@ -642,13 +668,16 @@ function renderAResult(app, p) {
   });
   app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(d.name, aNick, d.name); });
   app.querySelector('#aAgainBtn').addEventListener('click', () => {
-    // 친구 참여 기록이 있으면 사라진다고 경고 후 진행
-    if (getBoard(ownerId).length && !confirm('다시 하면 친구들이 남긴 토핑 참여 기록이 사라져요.\n계속할까요?')) return;
-    flagClick('result', '다시하기클릭', ownerId);
-    LS.remove('passorder_a_done');          // 결과 유지 해제 → 시작 화면부터
-    LS.remove(boardKey(ownerId));           // 이 판의 친구 참여 기록 비움
-    LS.remove('passorder_ownerId');         // 새 판 = 새 ownerId (기존 기록과 분리)
-    location.hash = 'a-start';
+    const reset = () => {
+      flagClick('result', '다시하기클릭', ownerId);
+      LS.remove('passorder_a_done');          // 결과 유지 해제 → 시작 화면부터
+      LS.remove(boardKey(ownerId));           // 이 판의 친구 참여 기록 비움
+      LS.remove('passorder_ownerId');         // 새 판 = 새 ownerId (기존 기록과 분리)
+      location.hash = 'a-start';
+    };
+    // 친구 참여 기록이 있으면 인앱 모달로 경고 후 진행
+    if (getBoard(ownerId).length) confirmModal('다시 하면 친구들이 남긴\n토핑 참여 기록이 사라져요.\n계속할까요?', '다시 하기', reset);
+    else reset();
   });
 
   syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }); // 원격(다른 기기) 참여 합산
