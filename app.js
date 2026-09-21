@@ -178,16 +178,21 @@ function toppingImg(t) {
     onerror="this.replaceWith(document.createTextNode('${t.emoji}'))" />`;
 }
 
-// 딥링크 (음료 검색) — 앱 브릿지 명세
+// 딥링크 (음료 검색) — 실제 앱링크: https://link.passorder.kr/search/home/list?open=true&sort=NEAREST&query=…
+// app_install_identifier는 뺐다 — 빈 값으로 넣으면 어트리뷰션이 진짜 install id를 안 채울 수 있어, 앱이 알아서 채우게 둠.
 function orderDeepLink(query, nick, menu) {
   const params = new URLSearchParams({
-    query: query || '',
-    nick: (nick || '').slice(0, 20),   // 닉네임(귀속용)
+    open: 'true',
+    sort: 'NEAREST',
+    query: query || '',                 // 검색 메뉴명
+    nick: (nick || '').slice(0, 20),    // 닉네임(귀속용)
     menu: menu || query || '',          // 결과 메뉴명
     vid: getVid(),                      // 방문자 식별
+    utm_campaign: 'fall_drinks_2026',   // 콘텐츠 귀속 마커 — 앱 UAR search_params에 찍혀 웹과 동일 필터(*fall_drinks_2026*)로 잡힘
+    utm_content: 'fall_taste_test',     // 진입 소재(웹 orderPass와 통일)
     ref: 'cvol4'
   });
-  return `applinkspassorder://search/home/list?${params.toString()}`; // 앱 정상작동 확인된 경로 (닉/메뉴/vid 첨부)
+  return `https://link.passorder.kr/search/home/list?${params.toString()}`;
 }
 
 // 공유 (mock: 데스크톱 alert / 앱 브릿지는 window.shareLink · webkit 명세)
