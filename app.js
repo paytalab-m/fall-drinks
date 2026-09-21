@@ -193,10 +193,11 @@ function orderDeepLink(query, nick, menu) {
 async function shareContent(message) {
   // 메시지 안의 실제 공유 링크 추출 (http/https/file 모두 · 없으면 현재 URL)
   const link = (message.match(/(?:https?|file):\/\/\S+/) || [location.href])[0];
+  const text = message.replace(link, '').trim(); // 미리보기 카드 중복 방지: 텍스트에서 링크 제거(url 필드로만 미리보기)
   // 1) 웹 표준 공유하기 (Web Share API) — 폰 네이티브 공유시트(카톡·메시지·링크복사)
   //    ※ https/localhost 등 보안 컨텍스트에서만 동작. 아니면 아래로 폴백.
   if (navigator.share) {
-    try { await navigator.share({ title: '가을 음료 취향 테스트', text: message, url: link }); return; }
+    try { await navigator.share({ title: '가을 음료 취향 테스트', text: text, url: link }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; /* 사용자가 취소 */ }
   }
   // 2) 패스오더 앱 웹뷰 네이티브 브리지

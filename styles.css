@@ -928,7 +928,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .bgame-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; z-index: 0; }
 .bg-head { position: absolute; top: 8%; left: 0; right: 0; z-index: 3; text-align: center; padding: 0 22px; }
 .bg-badge { display: inline-block; background: var(--ink); color: #fff; font-size: 12.5px; font-weight: 800; padding: 6px 14px; border-radius: 999px; margin-bottom: 10px; box-shadow: var(--sh-soft); }
-.bg-title { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 22px; line-height: 1.35; color: var(--ink); text-shadow: 0 1px 4px rgba(255,250,240,0.9); }
+.bg-title { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 22px; line-height: 1.35; color: var(--ink); -webkit-text-stroke: 3px #fff; paint-order: stroke fill; }
 .bg-title b { color: #C0432E; }
 /* STOP 낙하 연출: 토핑이 음료로 풍덩 + 물방울 + 컵 흔들림 */
 .bg-topping.drop { animation: bgDrop .8s cubic-bezier(.4,.05,.5,1) forwards; }
@@ -937,7 +937,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .bg-splash { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-size: 46px; opacity: 0; z-index: 4; animation: bgSplash .6s ease .55s forwards; }
 @keyframes bgSplash { 0% { opacity: 0; transform: translateX(-50%) scale(.4); } 45% { opacity: 1; transform: translateX(-50%) scale(1.1); } 100% { opacity: 0; transform: translateX(-50%) scale(1.3) translateY(-10px); } }
 .bg-drink img.shake { animation: shake .5s ease .5s; }
-.bg-stage { position: absolute; top: 27%; left: 0; right: 0; z-index: 2; height: 44%; display: flex; align-items: flex-end; justify-content: center; }
+.bg-stage { position: absolute; top: 27%; left: 0; right: 0; z-index: 2; height: 41%; display: flex; align-items: flex-end; justify-content: center; }
 .bg-drink img { height: 23vh; max-height: 213px; width: auto; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(74,52,33,0.30)); }
 .bg-topping { position: absolute; top: -4%; left: 50%; transform: translateX(-50%); z-index: 3; }
 .bg-topping img { width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(74,52,33,0.3)); animation: topBob .5s ease-in-out infinite alternate; }
