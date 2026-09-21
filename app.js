@@ -177,8 +177,15 @@ function toppingImg(t) {
 }
 
 // 딥링크 (음료 검색) — 앱 브릿지 명세
-function orderDeepLink(query) {
-  return `applinkspassorder://search/home/list?query=${encodeURIComponent(query)}`;
+function orderDeepLink(query, nick, menu) {
+  const params = new URLSearchParams({
+    query: query || '',
+    nick: (nick || '').slice(0, 20),   // 닉네임(귀속용)
+    menu: menu || query || '',          // 결과 메뉴명
+    vid: getVid(),                      // 방문자 식별
+    ref: 'cvol4'
+  });
+  return `applinkspassorder://search/home/list?${params.toString()}`; // 앱 정상작동 확인된 경로 (닉/메뉴/vid 첨부)
 }
 
 // 공유 (mock: 데스크톱 alert / 앱 브릿지는 window.shareLink · webkit 명세)
@@ -270,7 +277,7 @@ function router() {
   // 진입점·전환·결과창은 뒤로가기 숨김. 결과창엔 다시하기(↻) 표시
   const noBack = route === 'a-start' || route === 'b-start' || route === 'b-loading' || RESULT_ROUTES.includes(route);
   ensureBackBtn().style.display = noBack ? 'none' : 'flex';
-  ensureRedoBtn().style.display = RESULT_ROUTES.includes(route) ? 'flex' : 'none';
+  ensureRedoBtn().style.display = (route === 'b-result') ? 'flex' : 'none'; // a-result는 새로고침 오해 소지로 숨김
   if (route !== 'a-quiz') logStep(route, params.ownerId); // 화면 도달(퀴즈는 문항별로 renderQuizStep에서)
   window.scrollTo(0, 0);
   console.log('[router]', route, params);
@@ -305,8 +312,8 @@ function stub(app, title, note) {
 }
 
 // ---- 공통: 주문 딥링크 (mock) ----
-function orderMock(query) {
-  const link = orderDeepLink(query);
+function orderMock(query, nick, menu) {
+  const link = orderDeepLink(query, nick, menu);
   const ua = navigator.userAgent.toLowerCase();
   if (ua.match('android') != null || ua.indexOf('iphone') > -1) {
     location.href = link; // 앱 웹뷰: 딥링크 진입
@@ -369,12 +376,12 @@ function flagClick(tab, field, ownerId) {
   sheetPost_(body);
 }
 
-// 주문 CTA → 패스오더 웹 검색 페이지(https://app.passorder.co.kr/search?query=…).
+// 주문 CTA → 패스오더 웹 검색결과(https://app.passorder.co.kr/search?q=…). q= 로 검색 실행됨(라이브 검증).
 // query = 검색할 메뉴명(비100%=베이스음료 / 100%=실제 메뉴). menu = 웹 결과 메뉴명(귀속용).
 function orderPass(scenario, nick, query, menu) {
   const vid = getVid();
   const params = new URLSearchParams({
-    query: query || '',
+    q: query || '',                    // 웹 검색 파라미터(메인에서 q= 로 검색창 채움)
     utm_source: 'fall_taste_test', utm_medium: 'referral',
     utm_campaign: 'fall_drinks_2026', utm_content: 'fall_taste_test',
     scenario: scenario, vid: vid, nick: (nick || '').slice(0, 20), menu: menu || query || ''
@@ -571,7 +578,7 @@ function renderAResult(app, p) {
       <!-- 상단 결과 카드 = 일러스트 스킨(v5, 풀블리드) + 텍스트 오버레이 -->
       <div class="result-skin">
         <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v13.png')}" alt="" />
-        <div class="rs-badge">🍁 당신의 가을 음료 취향은?</div>
+        <div class="rs-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
         <span class="rs-title">${d.name}</span>
         <div class="rs-subtitle">${d.typeTitle} 음료</div>
         <div class="rs-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
@@ -603,7 +610,7 @@ function renderAResult(app, p) {
     const url = shareUrlForB(ownerId, baseDrink);
     shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해서 우리만의 커스텀 음료를 만들어보자!\n${url}`);
   });
-  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(d.name); });
+  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(d.name, aNick, d.name); });
   app.querySelector('#aAgainBtn').addEventListener('click', () => { flagClick('result', '다시하기클릭', ownerId); location.hash = 'a-start'; });
 
   syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }); // 원격(다른 기기) 참여 합산
