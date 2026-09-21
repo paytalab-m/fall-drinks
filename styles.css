@@ -1,0 +1,991 @@
+/* =========================================================
+   가을 취향 테스트 · 스타일 — "따뜻한 가을 크래프트" 톤
+   레퍼런스(poomang/banggooso) 문법: 질감 배경 · 스티커 타이틀
+   · 1:1 씬 이미지 · 부드러운 입체 · 콘텐츠 감성
+   모바일 우선 · 앱 웹뷰(375~430px)
+   ========================================================= */
+
+/* 제목 폰트: 여기어때 잘난체 — 실패 시 Pretendard 폴백 */
+@font-face {
+  font-family: 'Jalnan';
+  src: url('https://cdn.jsdelivr.net/gh/fonts-archive/Jalnan/Jalnan.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
+}
+
+:root {
+  /* 크래프트 가을 팔레트 */
+  --paper:     #F3E1C7;   /* 크래프트 배경 */
+  --paper-dk:  #EAD3B0;   /* 배경 딥 톤 */
+  --card:      #FFFDF8;   /* 카드/패널 (미색 화이트) */
+  --ink:       #3B2A1E;   /* 잉크(텍스트) */
+  --ink-soft:  #6E5847;   /* 서브 텍스트 */
+  --orange:    #E8843C;   /* 포인트 */
+  --orange-dk: #C25A22;   /* 강조 */
+  --maple:     #C0432E;   /* 단풍 레드 */
+  --gold:      #E0A93B;   /* 금빛 */
+  --leaf:      #7E9153;   /* 균형용 가을 그린 */
+  --line:      #EAD9BE;   /* 옅은 보더(라인 톤 낮춤) */
+
+  /* 그림자 — 전부 페더(블러) · 입체감만 느껴질 정도로 연하게 */
+  --sh-soft: 0 2px 8px rgba(74,52,33,0.06);
+  --sh:      0 6px 18px rgba(74,52,33,0.10);
+  --sh-lg:   0 12px 26px rgba(74,52,33,0.12);
+
+  --radius:    22px;
+  --radius-sm: 16px;
+  --pill:      999px;
+  --maxw:      430px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  color: var(--ink);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  letter-spacing: -0.3px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  background: var(--paper);
+}
+body { display: flex; justify-content: center; }
+
+/* 크래프트 종이 질감: 미세 노이즈(SVG) + 따뜻한 방사 글로우 */
+.app {
+  width: 100%;
+  max-width: var(--maxw);
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(130% 70% at 50% -8%, #FBEFD9 0%, rgba(251,239,217,0) 55%),
+    radial-gradient(120% 60% at 50% 108%, #EAD3B0 0%, rgba(234,211,176,0) 50%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  background-attachment: fixed, fixed, fixed;
+}
+
+/* 풀블리드 배경 일러스트(연하게) — assets/scenes/bg.png 넣으면 은은하게 깔림.
+   없으면 위 .app 그라데이션이 그대로 배경. */
+.app::before {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url('assets/scenes/bg.png') top center / cover no-repeat;
+  opacity: 0.18;
+}
+.page { position: relative; z-index: 1; }
+
+/* 제목 계열 */
+.title-font { font-family: 'Jalnan', 'Pretendard', sans-serif; font-weight: 700; letter-spacing: -0.5px; }
+
+/* ---------- 시작 화면 히어로 ---------- */
+.a-start { position: relative; }
+/* 스티커 타이틀: Jalnan(잘난체) + 흰 외곽선 + 연한 그림자 (poomang 류 콘텐츠 타이포) */
+.hero-title {
+  font-family: 'Jalnan', 'Pretendard', sans-serif;
+  font-size: 33px; line-height: 1.22; color: var(--maple);
+  -webkit-text-stroke: 6px #FFFDF8; paint-order: stroke fill;
+  text-shadow: 0 4px 0 rgba(74,52,33,0.12);
+}
+/* 부타이틀 */
+.hero-sub {
+  font-family: 'Pretendard', sans-serif;
+  font-size: 16.5px; font-weight: 600; color: var(--ink-soft);
+}
+/* 히어로 일러스트 크게(풀폭) + 스티커 아웃라인 강조 */
+.hero-scene-wrap .scene { max-width: 100%; border-width: 5px; box-shadow: var(--sh-lg); }
+/* 떠다니는 낙엽 악센트 */
+.leaf { position: absolute; z-index: 0; pointer-events: none; opacity: 0.55; }
+.leaf.a1 { top: 66px; left: 8px;  font-size: 26px; transform: rotate(-18deg); }
+.leaf.a2 { top: 44px; right: 12px; font-size: 30px; transform: rotate(16deg); }
+.leaf.a3 { top: 320px; right: 6px; font-size: 20px; transform: rotate(10deg); }
+
+/* ---------- 프롤로그 화면 (풀스크린 백드롭 + 스토리) ---------- */
+.prologue-page { position: relative; }
+/* 씬 이미지 = 상단 백드롭 (자연비율로 조금 줄여 위로 · 다람쥐 얼굴 노출) + 연하게 + 하단 페이드 */
+.prologue-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.28; z-index: 0;
+  object-fit: cover; object-position: center 47%;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 96%);
+}
+.prologue-content {
+  position: relative; z-index: 1;
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column; padding: 24px 20px 36px;
+}
+/* 스토리 텍스트 크게 (읽는 흐름) */
+.prologue-story {
+  position: absolute; top: 30%; left: 0; right: 0; transform: translateY(-50%);
+  text-align: center; padding: 0 6%;
+  font-size: 21px; line-height: 1.75; font-weight: 700; color: var(--ink);
+  word-break: keep-all;
+  text-shadow: 0 1px 8px rgba(255,253,248,0.95), 0 1px 2px rgba(255,253,248,0.9);
+}
+/* 닉네임+버튼을 위로 올리는 하단 리프트 (버튼 위치 = 시작화면 CTA와 동일 ~82%) */
+.pl-lift { flex: 0 0 5vh; }
+
+/* ---------- B 첫 화면 · 일러스트 스킨 오버레이 (크롭 없이 전체 표시) ---------- */
+.bstart-skin {
+  position: relative; width: 100%;
+  min-height: 100vh; min-height: 100dvh;
+  background: #EEC092; /* 스킨 하단 크래프트색 → 이미지 아래 이음새 */
+  overflow: hidden; animation: fadeIn .35s ease both;
+}
+/* 이미지가 가로 꽉·세로 자동 → 크롭 없이 전체 표시. 오버레이는 이 캔버스(=이미지) 기준 % */
+.bs-canvas { position: relative; width: 100%; container-type: inline-size; }
+.bstart-bg { display: block; width: 100%; height: auto; }
+
+/* 다크 뱃지 슬롯 위 흰 텍스트 */
+.bs-badge {
+  position: absolute; z-index: 2; top: 13%; left: 50%; transform: translate(-50%,-50%);
+  color: #fff; font-size: 3.6cqw; font-weight: 700; white-space: nowrap;
+}
+.bs-badge b { font-weight: 800; }
+/* 타이틀 (오렌지/옐로 바 위) */
+.bs-title {
+  position: absolute; z-index: 2; top: 22%; left: 50%; transform: translate(-50%,-50%);
+  font-family: 'Jalnan','Pretendard',sans-serif; color: var(--ink);
+  font-size: 5.7cqw; line-height: 1.5; text-align: center; white-space: nowrap;
+}
+/* 슬롯 라벨(각 칸 위) — v6: ➕/= 스킨 내장, 세 슬롯 같은 높이 */
+.bs-cap { position: absolute; z-index: 2; transform: translate(-50%,-50%); font-size: 3cqw; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+.bs-cap-drink   { left: 19%; top: 34%; }
+.bs-cap-topping { left: 51%; top: 34%; }
+.bs-cap-result  { left: 80%; top: 34%; }
+/* 음료 이미지 + 이름 */
+.bs-drink { position: absolute; z-index: 2; left: 19%; top: 41%; transform: translate(-50%,-50%); }
+.bs-drink img { height: 21cqw; width: auto; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(74,52,33,0.2)); }
+.bs-name { position: absolute; z-index: 2; left: 19%; top: 47.5%; transform: translate(-50%,-50%);
+  font-family: 'Jalnan','Pretendard',sans-serif; font-size: 3.6cqw; color: var(--orange-dk); white-space: nowrap; }
+/* 결과 물음표 슬롯 */
+.bs-q { position: absolute; z-index: 2; transform: translate(-50%,-50%); font-family: 'Jalnan','Pretendard',sans-serif; line-height: 1; }
+.bs-result  { left: 80%; top: 41%; font-size: 11cqw; color: var(--orange); }
+
+/* 토핑 슬롯: 실제 토핑 10종 루프 애니메이션 (번갈아 표시) */
+.bs-topping-loop { position: absolute; z-index: 2; left: 51%; top: 41%; transform: translate(-50%,-50%); width: 17cqw; height: 17cqw; }
+.bs-topping-loop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0;
+  animation: toppingCycle 5s linear infinite; filter: drop-shadow(0 3px 4px rgba(74,52,33,0.18)); }
+.bs-topping-loop img:nth-child(1) { animation-delay: 0s; }
+.bs-topping-loop img:nth-child(2) { animation-delay: 0.5s; }
+.bs-topping-loop img:nth-child(3) { animation-delay: 1s; }
+.bs-topping-loop img:nth-child(4) { animation-delay: 1.5s; }
+.bs-topping-loop img:nth-child(5) { animation-delay: 2s; }
+.bs-topping-loop img:nth-child(6) { animation-delay: 2.5s; }
+.bs-topping-loop img:nth-child(7) { animation-delay: 3s; }
+.bs-topping-loop img:nth-child(8) { animation-delay: 3.5s; }
+.bs-topping-loop img:nth-child(9) { animation-delay: 4s; }
+.bs-topping-loop img:nth-child(10) { animation-delay: 4.5s; }
+@keyframes toppingCycle { 0%, 9.99% { opacity: 1; } 10%, 100% { opacity: 0; } }
+/* 하단 블록: 설명 + 닉네임 + 버튼
+   버튼 위치 = A 프롤로그와 동일 고정값 (버튼 하단 = 10vh + 36px, 중심 ≈82%) */
+.bs-lower { position: absolute; z-index: 2; left: 0; right: 0; bottom: calc(10vh + 36px); padding: 0 22px; }
+.bs-desc {
+  text-align: center; font-size: 13px; line-height: 1.6;
+  font-weight: 600; color: var(--ink-soft); word-break: keep-all; margin-bottom: 14px;
+}
+
+/* 다람쥐 마스코트 + 말풍선 */
+.mascot-row { display: flex; align-items: center; justify-content: center; gap: 4px; margin: 16px 0 4px; }
+.mascot-img { width: 88px; height: 88px; object-fit: contain; flex: 0 0 auto; }
+.speech-bubble {
+  position: relative; background: var(--card); border: 2px solid var(--line);
+  border-radius: 16px; padding: 12px 16px; box-shadow: var(--sh-soft);
+  font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; text-align: center;
+}
+.speech-bubble::before {
+  content: ''; position: absolute; left: -9px; top: 50%; transform: translateY(-50%);
+  border: 9px solid transparent; border-right-color: var(--line);
+}
+.speech-bubble::after {
+  content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%);
+  border: 7px solid transparent; border-right-color: var(--card);
+}
+
+/* 좌상단 뒤로가기 (심플 · 흰 원 없음) */
+.back-btn {
+  position: fixed; top: 12px; left: 16px; z-index: 100;
+  background: none; border: none; box-shadow: none; cursor: pointer;
+  color: var(--ink); font-size: 40px; line-height: 1; font-weight: 800;
+  padding: 4px 12px; text-shadow: 0 1px 2px rgba(255,253,248,0.7);
+}
+.back-btn:active { transform: scale(0.9); }
+/* 우상단 다시하기(↻) — 결과창 전용 */
+.redo-btn {
+  position: fixed; top: 14px; right: 16px; z-index: 100;
+  background: rgba(255,253,248,0.85); border: none; cursor: pointer;
+  width: 42px; height: 42px; border-radius: 999px;
+  color: var(--ink); font-size: 24px; line-height: 1; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(74,52,33,0.18);
+}
+.redo-btn:active { transform: scale(0.9); }
+/* 스티커 타이틀 (그림자 없음) */
+.sticker-title {
+  font-family: 'Jalnan', 'Pretendard', sans-serif;
+  color: var(--ink);
+  line-height: 1.22;
+}
+.sticker-title.accent { color: var(--maple); }
+.sticker-title.on-orange { color: #fff; }
+
+/* ---------- 페이지 공통 ---------- */
+.page {
+  padding: 24px 20px 36px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn .35s ease both;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity:1; transform:none; } }
+
+/* 배지 · 브래킷 서브타이틀 */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; align-self: center;
+  background: var(--ink); color: #fff;
+  font-size: 13px; font-weight: 700;
+  padding: 7px 15px; border-radius: var(--pill);
+  box-shadow: var(--sh-soft);
+}
+.badge.soft { background: var(--card); color: var(--orange-dk); box-shadow: var(--sh-soft); }
+.bracket {
+  display: inline-block; position: relative; font-weight: 700; color: var(--ink-soft);
+  padding: 0 16px;
+}
+.bracket::before, .bracket::after {
+  content: ''; position: absolute; top: 2px; bottom: 2px; width: 7px;
+  border: 2px solid var(--ink-soft);
+}
+.bracket::before { left: 0; border-right: none; }
+.bracket::after  { right: 0; border-left: none; }
+
+h1.headline { font-size: 28px; line-height: 1.28; margin: 16px 0 10px; }
+h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
+
+.spacer { flex: 1 1 auto; min-height: 16px; }
+
+/* ---------- 버튼 (부드러운 입체 pill) ---------- */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 17px 18px;
+  border: none; border-radius: var(--pill);
+  font-family: inherit; font-size: 16.5px; font-weight: 700;
+  cursor: pointer;
+  transition: transform .1s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn-primary   { background: var(--orange); color: #fff; box-shadow: var(--sh); }
+.btn-secondary { background: var(--card); color: var(--ink); box-shadow: var(--sh-soft); }
+.btn-dark      { background: var(--ink); color: #fff; box-shadow: var(--sh); }
+.btn-ghost     { background: transparent; color: var(--ink-soft); font-weight: 700; box-shadow: none; }
+.btn:active { transform: translateY(1px); box-shadow: var(--sh-soft); }
+.btn-primary:active { filter: brightness(0.97); }
+.btn-ghost:active   { transform: scale(0.98); box-shadow: none; }
+.btn-row { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
+/* 시작화면 CTA와 동일한 3D 입체 pill (단, 폰트는 Pretendard 유지) */
+.btn-cta3d {
+  background: var(--orange); color: #fff;
+  border: 3px solid #A64A1C; border-radius: var(--pill);
+  font-family: 'Pretendard', sans-serif; font-weight: 700;
+  box-shadow: 0 6px 0 #A64A1C, 0 10px 14px rgba(74,52,33,0.25);
+  text-shadow: 0 1px 2px rgba(120,50,20,0.35);
+}
+.btn-cta3d:active { transform: translateY(3px); box-shadow: 0 3px 0 #A64A1C, 0 6px 10px rgba(74,52,33,0.25); }
+
+/* 소셜 프루프 · 공유 */
+.social-proof { text-align: center; font-size: 14px; font-weight: 700; color: var(--ink-soft); margin-top: 12px; }
+.share-row { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+.share-btn {
+  width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  background: var(--card); box-shadow: var(--sh-soft);
+}
+.share-btn:active { transform: translateY(1px); }
+
+/* ---------- 입력 ---------- */
+.field-label { font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.field-hint  { font-size: 12px; color: var(--ink-soft); margin-top: 6px; text-align: center; }
+/* 입력 미완료 경고문 (빨간색) */
+.field-err   { font-size: 12.5px; font-weight: 700; color: var(--maple); margin-top: 6px; text-align: center; }
+.input.shake { animation: shake .4s ease; }
+.input {
+  width: 100%; padding: 16px 18px;
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--card); font-family: inherit; font-size: 16px; font-weight: 600; color: var(--ink);
+  text-align: center; box-shadow: var(--sh-soft);
+}
+.input::placeholder { color: #C4B49B; font-weight: 500; }
+.input:focus { outline: none; border-color: var(--orange); }
+
+/* ---------- 카드 ---------- */
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px;
+  box-shadow: var(--sh-soft);
+}
+
+/* ---------- 1:1 씬 이미지 슬롯 (핵심) ---------- */
+.scene {
+  position: relative;
+  width: 100%; max-width: 320px; aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  border: 4px solid var(--card);
+  box-shadow: var(--sh);
+  overflow: hidden;
+  background: linear-gradient(150deg, #FBE7C8 0%, #F1C98E 55%, #E8B06A 100%);
+}
+.scene img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; z-index: 1; }
+/* 이미지 미존재 시 플레이스홀더 (이모지 + 라벨) */
+.scene-ph {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  text-align: center; padding: 16px;
+}
+.scene-ph .emoji { font-size: 96px; line-height: 1; filter: drop-shadow(0 8px 12px rgba(74,52,33,0.15)); }
+.scene-ph .label { font-size: 13px; font-weight: 700; color: var(--orange-dk); background: rgba(255,253,248,0.85); padding: 4px 12px; border-radius: var(--pill); }
+
+/* 음료 카드 (1:1 정사각 · 라벨 + 이미지 + 음료명 한 덩어리) */
+.drink-card {
+  width: 100%; max-width: 340px; aspect-ratio: 1 / 1; margin: 0 auto;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--sh);
+  padding: 20px 16px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.drink-card-label { font-size: 14.5px; font-weight: 700; color: var(--ink-soft); }
+.drink-card-media {
+  flex: 1 1 auto; min-height: 0; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 120px; line-height: 1;
+}
+.drink-card-media img { max-height: 100%; max-width: 92%; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(74,52,33,0.18)); }
+.drink-card-name { font-size: 27px; }
+
+/* 음료 미디어 (원형 프레임 제거 · 이미지 크게 · 그림자로 입체) */
+.drink-media {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 260px; margin: 4px auto; font-size: 160px; line-height: 1;
+}
+.drink-media img {
+  height: 260px; width: auto; max-width: 88vw; object-fit: contain;
+  filter: drop-shadow(0 12px 16px rgba(74,52,33,0.20));
+}
+
+/* 퀴즈: 진행바 폭을 아래 이미지 박스 이내로 줄이고 가운데 정렬 */
+.qpage .progress { width: 78%; max-width: 300px; margin: 6px auto 0; }
+/* 퀴즈 상단 맥락 라벨 — 은유 문항 속에서도 "음료 찾기"임을 상기 */
+.quiz-ctx { text-align: center; font-size: 12.5px; font-weight: 800; color: var(--orange-dk); letter-spacing: 0.2px; margin-bottom: 8px; }
+/* 뷰포트 안에 딱 맞게 — 이미지 캡으로 잘림 방지. 답변은 질문 바로 아래(문항 수 무관 동일 위치) */
+.qpage { padding-top: 20px; padding-bottom: 5vh; }
+.qpage .scene { max-width: min(238px, 28vh); }
+
+/* ---------- 로딩 다람쥐 3프레임 루프 (이미지 번갈아) ---------- */
+.loader-frames { position: relative; width: 200px; height: 200px; margin: 0 auto 8px; }
+.loader-frames img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+  opacity: 0; animation: loaderCycle 0.75s linear infinite;
+}
+.loader-frames img:nth-child(1) { animation-delay: 0s; }
+.loader-frames img:nth-child(2) { animation-delay: 0.25s; }
+.loader-frames img:nth-child(3) { animation-delay: 0.5s; }
+@keyframes loaderCycle { 0%, 33.33% { opacity: 1; } 33.34%, 100% { opacity: 0; } }
+
+/* ---------- 진행 바 ---------- */
+.progress { height: 10px; background: var(--paper-dk); border-radius: var(--pill); overflow: hidden; box-shadow: inset 0 1px 3px rgba(74,52,33,0.10); }
+.progress > span { display: block; height: 100%; background: var(--orange); border-radius: var(--pill); transition: width .3s ease; }
+.step-count { text-align: center; font-size: 14px; font-weight: 700; color: var(--ink); margin: 8px 0 2px; }
+
+/* ---------- 문항 ---------- */
+.question {
+  text-align: center; font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700;
+  font-size: clamp(18px, 2.5vh, 21px); line-height: 1.4; color: var(--ink);
+  margin: 30px 0 4px; word-break: keep-all;
+}
+.prologue {
+  background: var(--card); border: 1.5px dashed var(--gold);
+  border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 8px; box-shadow: var(--sh-soft);
+}
+.prologue .tag { font-size: 12px; font-weight: 700; color: var(--orange-dk); margin-bottom: 4px; }
+.prologue .body { font-size: 14.5px; color: var(--ink-soft); }
+
+/* ---------- 선택지 (2줄 pill) ---------- */
+.options { display: flex; flex-direction: column; gap: 5px; margin-top: 14px; }
+.option {
+  text-align: center; width: 100%;
+  padding: 16px; border: 2px solid #D9BE94; border-radius: var(--radius-sm);
+  background: var(--card); color: var(--ink); font-family: inherit; font-size: 15.5px; font-weight: 700;
+  line-height: 1.4; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(74,52,33,0.12);
+  transition: transform .1s, box-shadow .15s, background .12s, border-color .12s;
+}
+.option:active { transform: translateY(1px); box-shadow: var(--sh-soft); }
+.option.selected { border-color: var(--orange); background: #FFF3E4; }
+
+/* ---------- B · 컵에 풍덩! (풀블리드 바리스타존) ---------- */
+.pick-page {
+  position: relative; width: 100%;
+  min-height: 100vh; min-height: 100dvh;
+  overflow: hidden;
+  animation: fadeIn .35s ease both;
+}
+/* 세로형 무대 배경을 화면 꽉차게 */
+.pick-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center bottom; z-index: 0;
+}
+/* 헤더 — 전구 아래 깨끗한 페이퍼 백드롭 위 */
+.pick-head {
+  position: absolute; top: 12.5%; left: 0; right: 0; z-index: 3;
+  text-align: center; padding: 0 22px;
+  text-shadow: 0 1px 3px rgba(255,250,240,0.9);
+}
+.pick-head .headline { font-size: 23px; line-height: 1.3; margin: 0 0 5px; color: var(--ink); }
+.pick-sub { font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+
+/* 컨베이어 — 페이퍼 백드롭 위를 가로지름 */
+.conveyor { position: absolute; top: 26%; left: 0; right: 0; z-index: 2; height: 112px; overflow: hidden; }
+.conveyor-track { display: flex; gap: 30px; width: max-content; height: 100%; align-items: center; padding: 0 30px; animation: roll 7.5s linear infinite; }
+.conveyor.paused .conveyor-track { animation-play-state: paused; }
+@keyframes roll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* 칩 + 이름 라벨 세로 묶음 */
+.chip-col { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.chip-name { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap;
+  background: rgba(255,253,248,0.92); padding: 1px 9px; border-radius: 999px; box-shadow: var(--sh-soft); }
+.topping-chip {
+  flex: 0 0 auto; width: 86px; height: 86px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 44px;
+  background: var(--card); border: 2px solid var(--line); box-shadow: var(--sh);
+}
+.topping-chip img { width: 60px; height: 60px; object-fit: contain; }
+.dropzone {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 96px; height: 112px; pointer-events: none; z-index: 1;
+  border-left: 2px dashed var(--maple); border-right: 2px dashed var(--maple);
+  background: rgba(192,67,46,0.06);
+}
+.dropzone-arrow { position: absolute; top: 40%; left: 0; right: 0; z-index: 2; text-align: center; font-size: 34px; color: var(--maple); }
+
+/* 컵 — 원목 카운터 위에 안착 */
+.cup-wrap { position: absolute; left: 0; right: 0; bottom: 33%; z-index: 2; text-align: center; }
+.cup { line-height: 1; display: inline-block; }
+.cup .cup-img { height: 21vh; max-height: 210px; width: auto; object-fit: contain; vertical-align: bottom; filter: drop-shadow(0 10px 14px rgba(74,52,33,0.30)); }
+.cup.shake { animation: shake .45s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
+/* STOP 버튼 — 시작화면 CTA와 동일 위치(중심 82%) */
+.pick-cta { position: absolute; top: 82%; left: 0; right: 0; z-index: 3; transform: translateY(-50%); padding: 0 20px; }
+.pick-auto { text-align: center; font-size: 12.5px; font-weight: 600; color: #FFF3E0; margin-top: 11px; text-shadow: 0 1px 3px rgba(74,52,33,0.55); }
+
+/* 낙하 연출 (화면 비율 기준 %) */
+.drop-emoji { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-size: 54px; z-index: 4; }
+.drop-emoji img { width: 54px; height: 54px; object-fit: contain; }
+.drop-emoji.falling { animation: drop .8s cubic-bezier(.4,.05,.5,1) forwards; }
+@keyframes drop {
+  0%   { top: 40%; opacity: 1; transform: translateX(-50%) rotate(0deg); }
+  70%  { top: 51%; opacity: 1; transform: translateX(-50%) rotate(320deg); }
+  100% { top: 54%; opacity: 0; transform: translateX(-50%) rotate(360deg); }
+}
+.splash { position: absolute; left: 50%; top: 50%; transform: translateX(-50%); font-size: 42px; opacity: 0; z-index: 4; }
+.splash.go { animation: splash .6s ease forwards; }
+@keyframes splash { 0%{opacity:0;transform:translateX(-50%) scale(.4)} 40%{opacity:1;transform:translateX(-50%) scale(1.15)} 100%{opacity:0;transform:translateX(-50%) scale(1.3) translateY(-8px)} }
+/* 잔물결 — 컵에 떨어질 때 퍼짐 */
+.ripple { position: absolute; left: 50%; top: 52%; width: 76px; height: 24px; border: 3px solid rgba(255,248,235,0.8); border-radius: 50%; transform: translateX(-50%) scale(.3); opacity: 0; z-index: 3; }
+.ripple.go { animation: ripple .65s ease forwards; }
+@keyframes ripple { 0%{opacity:.85;transform:translateX(-50%) scale(.3)} 100%{opacity:0;transform:translateX(-50%) scale(1.5)} }
+
+/* ---------- B 결과 · 궁합 (미니멀·모던) ---------- */
+.bresult-page { padding: 60px 22px 40px; }
+
+/* 결과 카드 — 여백 넉넉, 테두리 없이 은은한 그림자 */
+.rcard {
+  background: var(--card); border-radius: 26px;
+  box-shadow: 0 10px 34px rgba(74,52,33,0.09);
+  padding: 26px 22px 28px; text-align: center;
+}
+/* 등급 — 잔잔한 필 */
+.rgrade {
+  display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--orange-dk);
+  background: #FBEEDD; padding: 6px 14px; border-radius: 999px; letter-spacing: 0.2px;
+}
+/* 음료 — 히어로, 부드러운 그림자만 */
+.rdrink { margin: 16px 0 2px; }
+.rdrink .bresult-cup { position: relative; display: inline-block; }
+.rdrink .drink-media, .rdrink .drink-media img { height: 186px; }
+.rdrink .combo-cup { height: 186px; width: auto; object-fit: contain; vertical-align: bottom;
+  filter: drop-shadow(0 14px 18px rgba(74,52,33,0.16)); }
+/* 조합명 — 바 없이 클린 볼드 */
+.rname { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 27px; line-height: 1.3; color: var(--ink); margin-top: 12px; }
+.rcombo { font-size: 13.5px; color: var(--ink-soft); margin-top: 8px; }
+/* 궁합 — 라벨 + 숫자 한 줄 + 슬림 바 */
+.rscore-row { display: flex; align-items: baseline; justify-content: space-between; margin-top: 24px; }
+.rscore-label { font-size: 14px; font-weight: 700; color: var(--ink); }
+.rscore-val { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 30px; line-height: 1; }
+.rscore-val i { font-size: 18px; font-style: normal; margin-left: 1px; }
+.rbar { height: 8px; border-radius: 999px; background: #F1E7D7; margin-top: 10px; overflow: hidden; }
+.rbar-fill { height: 100%; border-radius: 999px; transition: width .5s ease; }
+.rdesc { font-size: 14px; color: var(--ink-soft); line-height: 1.62; margin-top: 18px; }
+
+/* 주문 — 패널 없이 버튼 + 캡션 */
+.rorder { margin-top: 20px; text-align: center; }
+.rorder-note { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; }
+.rorder-btn { width: 100%; }
+
+/* 하단 링크(공유/다시) — 세컨더리·고스트 */
+.rlinks { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+
+/* ---------- B 결과 · 일러스트 스킨 오버레이 ---------- */
+.bresultskin {
+  position: relative; width: 100%;
+  min-height: 100vh; min-height: 100dvh;
+  background: #EFBF90; overflow: hidden; animation: fadeIn .35s ease both;
+}
+.brs-canvas { position: relative; width: 100%; container-type: inline-size; }
+.brs-bg { display: block; width: 100%; height: auto; }
+/* 등급 필 — 뒤로가기 버튼과 같은 라인(최상단) */
+.brs-grade {
+  position: absolute; z-index: 2; top: 4.9%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 3.2cqw; font-weight: 800; color: var(--orange-dk);
+  background: #FBEEDD; padding: 1.4cqw 4cqw; border-radius: 999px; white-space: nowrap; box-shadow: var(--sh-soft);
+}
+/* 조합명 — 원 위(24% 위) */
+.brs-name {
+  position: absolute; z-index: 2; top: 18%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 6.6cqw; line-height: 1.2; color: var(--ink); white-space: nowrap;
+}
+/* 조합식 */
+.brs-combo {
+  position: absolute; z-index: 2; top: 22.7%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 3.6cqw; font-weight: 600; color: var(--ink-soft); white-space: nowrap;
+}
+/* 결과 요소 순차 등장 */
+@keyframes revealFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes drinkPop {
+  0% { opacity: 0; transform: translate(-50%,-50%) scale(.72); }
+  70% { transform: translate(-50%,-50%) scale(1.05); }
+  100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+}
+.brs-grade { animation: revealFade .4s ease both; }
+.brs-name  { animation: revealFade .45s ease .12s both; }
+.brs-combo { animation: revealFade .45s ease .22s both; }
+.brs-drink { animation: drinkPop .55s cubic-bezier(.34,1.56,.64,1) .34s both; }
+.brs-bar   { animation: revealFade .45s ease .6s both; }
+.brs-score { animation: revealFade .45s ease .7s both; }
+.brs-copy  { animation: revealFade .45s ease .8s both; }
+
+/* A 결과 순차 등장 + 음료 팝인 (rs-drink 는 translateX 중심) */
+@keyframes rsDrinkPop {
+  0% { opacity: 0; transform: translateX(-50%) scale(.72); }
+  70% { transform: translateX(-50%) scale(1.05); }
+  100% { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+.rs-badge    { animation: revealFade .4s ease both; }
+.rs-title    { animation: revealFade .45s ease .12s both; }
+.rs-subtitle { animation: revealFade .45s ease .22s both; }
+.rs-drink    { animation: rsDrinkPop .55s cubic-bezier(.34,1.56,.64,1) .34s both; }
+.rs-tag      { animation: revealFade .45s ease .6s both; }
+.rs-why      { animation: revealFade .45s ease .72s both; }
+
+/* 100% 컨페티 (1회 낙하) */
+.brs-confetti { position: absolute; z-index: 3; top: 8%; left: 0; right: 0; height: 55%; pointer-events: none; overflow: hidden; }
+.cf { position: absolute; top: -8%; width: 8px; height: 12px; border-radius: 2px; opacity: 0;
+  animation-name: cfFall; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes cfFall {
+  0% { opacity: 0; transform: translateY(0) rotate(0deg); }
+  10% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(440px) rotate(600deg); }
+}
+/* 음료 — 원 안 (크게, 카드 중앙) */
+.brs-drink { position: absolute; z-index: 2; top: 39.4%; left: 50%; transform: translate(-50%,-50%); }
+.brs-drink .bresult-cup { position: relative; display: inline-block; }
+.brs-drink .drink-media, .brs-drink .drink-media img { height: 54cqw; }
+.brs-drink .combo-cup { height: 54cqw; width: auto; object-fit: contain; vertical-align: bottom; filter: drop-shadow(0 3cqw 4cqw rgba(74,52,33,0.18)); }
+/* 프로그레스 바 — 원 아래(55% 밑), 굵게 */
+.brs-bar {
+  position: absolute; z-index: 2; top: 57.5%; left: 50%; transform: translateX(-50%);
+  width: 62%; height: 3.4cqw; border-radius: 999px; background: #F1E7D7; overflow: hidden;
+}
+.brs-bar-fill { height: 100%; border-radius: 999px; transition: width .9s cubic-bezier(.2,.7,.3,1); }
+.brs-score {
+  position: absolute; z-index: 2; top: 62%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 4.4cqw; font-weight: 800; white-space: nowrap;
+}
+.brs-score b { font-size: 5.8cqw; }
+/* 궁합 한줄평 */
+.brs-copy {
+  position: absolute; z-index: 2; top: 66.5%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 3.4cqw; font-weight: 600; color: var(--ink-soft); white-space: nowrap;
+}
+/* 카드 아래 영역 (설명 + 버튼) — 화면 바닥에 정렬 */
+.brs-lower { position: absolute; z-index: 2; left: 0; right: 0; bottom: 3%; padding: 0 22px; }
+.brs-desc { text-align: center; font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.55; margin-bottom: 12px; }
+.brs-note { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 9px; }
+.brs-cta { width: 100%; margin-top: 10px; }
+.brs-cta:first-of-type { margin-top: 0; }
+/* 주문 버튼 — 더 진한 오렌지 */
+.brs-lower .btn-primary { background: #D3611D; }
+
+/* ---------- A 순위판 (친구들이 담아준 토핑) ---------- */
+.board-page { padding-top: 20px; }
+.board-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+.board-empty { text-align: center; color: var(--ink-soft); font-size: 14px; line-height: 1.7; padding: 32px 12px; background: var(--card); border-radius: var(--radius); box-shadow: var(--sh-soft); }
+.board-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 16px;
+  padding: 10px 14px; box-shadow: var(--sh-soft);
+  animation: revealFade .4s ease both;
+}
+.board-row.is-100 { border-color: var(--orange); background: #FFF6EA; }
+.board-row.is-skeleton { opacity: 0.38; }
+.board-row.is-skeleton .board-chip { font-size: 22px; }
+.board-rank { flex: 0 0 auto; width: 26px; text-align: center; font-size: 18px; font-weight: 800; color: var(--ink-soft); }
+.board-chip { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; background: #fff; border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.board-chip img { width: 30px; height: 30px; object-fit: contain; }
+.board-info { flex: 1 1 auto; min-width: 0; text-align: left; }
+.board-nick { font-size: 14px; font-weight: 800; color: var(--ink); }
+.board-blend { font-size: 12.5px; color: var(--ink-soft); }
+.board-score { flex: 0 0 auto; font-family: 'Jalnan','Pretendard',sans-serif; font-size: 22px; line-height: 1; }
+.board-score span { font-size: 14px; }
+
+.combo-badge {
+  position: absolute; right: 6px; bottom: 6px;
+  width: 56px; height: 56px; border-radius: 50%; background: var(--card);
+  border: 1.5px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 28px;
+  box-shadow: var(--sh-soft); overflow: hidden;
+}
+.combo-badge img { width: 36px; height: 36px; object-fit: contain; }
+
+/* ---------- A 결과 · 일러스트 스킨 오버레이 (풀블리드) ---------- */
+.rpage { padding-left: 0; padding-right: 0; padding-top: 0; }
+.rbelow { padding: 0 20px; }
+.result-skin {
+  position: relative; width: 100%; max-width: none; margin: 0;
+  container-type: inline-size;
+}
+/* 이미지가 높이를 직접 정함 → 컨테이너 = 이미지 박스 (letterbox 없음, % 좌표 정확) */
+.skin-bg { display: block; width: 100%; height: auto; }
+.result-skin > *:not(.skin-bg) { position: absolute; }
+/* 배지 (상단 다크 pill) — 뒤로가기 버튼과 동일 선상(v8) */
+.rs-badge {
+  top: 4.6%; left: 50%; transform: translate(-50%,-50%);
+  color: #fff; font-weight: 800; font-size: 3cqw; white-space: nowrap;
+  background: var(--ink); padding: 1.2cqw 3.6cqw; border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(74,52,33,0.15);
+}
+/* 타이틀 = 음료명 (상단 여백 · v13) */
+.rs-title {
+  top: 18%; left: 50%; transform: translate(-50%,-50%);
+  font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700;
+  font-size: 8cqw; line-height: 1; color: #3B2A1E; white-space: nowrap;
+}
+/* 부타이틀 = 유형명 (v13) */
+.rs-subtitle {
+  top: 23%; left: 50%; transform: translate(-50%,-50%);
+  font-weight: 700; font-size: 3.5cqw; color: #6E4A2B; white-space: nowrap;
+}
+/* 음료 (나무 단상 위) — v13 단상 top 실측 45.1% */
+.rs-drink {
+  left: 48%; bottom: 53%; transform: translateX(-50%);
+  height: 22%; width: 56%; display: flex; align-items: flex-end; justify-content: center;
+  font-size: 12cqw; line-height: 1;
+}
+.rs-drink img { height: 100%; width: auto; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(74,52,33,0.25)); }
+/* 태그 (4 pill) — v13 pill 중심 y52.8%, x[22.0/40.7/59.3/78.0] */
+.rs-tag {
+  top: 52.8%; transform: translate(-50%,-50%);
+  font-weight: 800; font-size: 2.45cqw; color: #4A2A10; white-space: nowrap; text-align: center;
+}
+/* 왜 이 음료 본문 (노트 박스 · v13 실측 57.1~76.9%) */
+.rs-why {
+  left: 15%; width: 70%; top: 58%; height: 18%; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 3.2cqw; line-height: 1.5; color: #3B2A1E; font-weight: 500;
+  word-break: keep-all; text-wrap: pretty;
+}
+
+/* ---------- 시작 화면 · 시작 스킨 오버레이 ---------- */
+.start-skin {
+  position: relative; width: 100%;
+  min-height: 100vh; min-height: 100dvh;
+  overflow: hidden; container-type: inline-size;
+}
+.start-skin > *:not(.skin-bg) { position: absolute; }
+/* b시작과 동일: 배경 cover로 뷰포트 꽉 채움 (하단만 살짝 크롭) */
+.start-skin .skin-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+}
+/* 타이틀 = 가을 취향 테스트 (상단 하늘 · 2줄 크게 · 스티커, 그림자 없음) */
+.ss-title {
+  top: 18%; left: 50%; transform: translate(-50%,-50%);
+  font-family: 'Jalnan','Pretendard',sans-serif; color: var(--maple);
+  font-size: 12.5cqw; line-height: 1.32; text-align: center; white-space: nowrap;
+  -webkit-text-stroke: 7px #FFFDF8; paint-order: stroke fill;
+  /* 그림자는 흰 외곽선까지 포함한 전체 스티커 아래로 (filter=렌더 형상 기준), 연하게 */
+  filter: drop-shadow(0 4px 3px rgba(74,52,33,0.2));
+}
+/* 아래 카피 (하늘 · 흰 글씨 · 크게) */
+.ss-sub {
+  top: 30%; left: 50%; transform: translate(-50%,-50%);
+  font-weight: 800; font-size: 5.2cqw; color: #fff; white-space: nowrap;
+  text-shadow: 0 2px 4px rgba(74,52,33,0.5);
+}
+/* 닉네임 입력 — 시작화면 CTA 바로 위 (스킨 위 오버레이) */
+.ss-nickwrap { bottom: 19%; left: 14%; right: 14%; }
+.ss-nickwrap .input { text-align: center; padding: 13px 16px; font-size: 15px; box-shadow: 0 6px 16px rgba(74,52,33,0.22); }
+.ss-nickwrap .field-err { text-shadow: 0 1px 4px rgba(255,253,248,0.95); }
+.bg-lower .field-err { color: #fff; text-shadow: 0 1px 3px rgba(74,52,33,0.7); }
+/* CTA — v7엔 그려진 버튼 없음 → 실제 주황 pill 버튼 */
+.ss-cta {
+  bottom: 5.5%; left: 50%; transform: translateX(-50%);
+  width: 72%; padding: 3.5cqw 0; cursor: pointer;
+  background: var(--orange); border: 3px solid #A64A1C; border-radius: 999px;
+  font-family: 'Jalnan','Pretendard',sans-serif; font-size: 4.8cqw; color: #fff;
+  display: flex; align-items: center; justify-content: center; gap: 1.5cqw;
+  box-shadow: 0 6px 0 #A64A1C, 0 10px 14px rgba(74,52,33,0.25);
+  text-shadow: 0 1px 2px rgba(120,50,20,0.35);
+}
+.ss-cta:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 3px 0 #A64A1C, 0 6px 10px rgba(74,52,33,0.25); }
+
+/* ---------- A 결과 · 확장 스킨 (대표카페 + 블렌딩유도 + 버튼) ---------- */
+.result-ext {
+  position: relative; width: 100%; margin-top: -1px; /* 메인 스킨과 이음새 */
+  container-type: inline-size;
+}
+.ext-bg { display: block; width: 100%; height: auto; }
+.result-ext > *:not(.ext-bg) { position: absolute; }
+/* Box1: 대표 카페 (실측 y4.5~33.4%) — 브랜드/메뉴 색 구분 + 구분선 */
+.ext-cafe { top: 7%; left: 13%; width: 74%; }
+.ext-cafe-title {
+  font-weight: 800; font-size: 3.5cqw; color: var(--orange-dk);
+  padding-bottom: 1.4cqw; margin-bottom: 1cqw; border-bottom: 2px solid rgba(232,132,60,0.25);
+}
+.cafe-list { display: flex; flex-direction: column; }
+.cafe-row {
+  display: flex; align-items: baseline; gap: 2cqw; padding: 1.4cqw 0.5cqw;
+  border-bottom: 1px dashed rgba(74,52,33,0.14);
+}
+.cafe-row:last-child { border-bottom: none; }
+.cafe-b { font-weight: 800; font-size: 3cqw; color: #3B2A1E; white-space: nowrap; }
+.cafe-m { font-size: 2.85cqw; color: #8A7159; }
+/* Box2: 블렌딩 유도 (실측 y35.6~58.4%) — 위계 + 100% 강조 pill */
+.ext-blend {
+  top: 37%; left: 12%; width: 76%; height: 24%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 1.8cqw;
+}
+.ext-blend-q { font-size: 3.9cqw; font-weight: 800; color: #3B2A1E; }
+.ext-blend-q b { color: var(--maple); }
+.ext-blend-b { font-size: 3cqw; color: #7A6350; line-height: 1.4; }
+.ext-blend-p { font-size: 3.1cqw; font-weight: 800; color: var(--orange-dk); margin-top: 0.4cqw; }
+/* 순위판(참여자 있을 때) — 박스2 안 컴팩트 랭킹 */
+.ext-blend.has-rank { justify-content: flex-start; align-items: stretch; text-align: left; gap: 0.7cqw; padding-top: 0.3cqw; }
+/* 순위 제목 — 대표카페 제목처럼 좌측정렬 + 구분선 */
+.ext-rank-title { font-size: 3.4cqw; font-weight: 800; color: var(--orange-dk); text-align: left; padding-bottom: 1cqw; border-bottom: 2px solid rgba(232,132,60,0.25); }
+.ext-rank-list { width: 100%; display: flex; flex-direction: column; gap: 1cqw; margin-top: 0.6cqw; }
+.ext-rank-row { display: flex; align-items: center; gap: 2cqw; }
+.err-medal { flex: 0 0 auto; width: 4.6cqw; text-align: center; font-size: 3.2cqw; }
+.err-chip { flex: 0 0 auto; width: 6.2cqw; height: 6.2cqw; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.err-chip img { width: 4.8cqw; height: 4.8cqw; object-fit: contain; }
+.err-info { flex: 1 1 auto; min-width: 0; text-align: left; font-size: 2.9cqw; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.err-info b { color: var(--ink); font-weight: 800; }
+.err-score { flex: 0 0 auto; font-family: 'Jalnan','Pretendard',sans-serif; font-size: 4cqw; }
+.ext-rank-more { width: 100%; text-align: center; font-size: 3.5cqw; font-weight: 800; color: var(--orange-dk); margin-top: 2cqw; cursor: pointer; }
+/* 빈 상태: 채워질 순위 자리를 흐리게 미리보기 → "채우고 싶다" 유도 */
+.ext-rank-preview { opacity: 0.42; }
+.ext-blend-invite { width: 100%; text-align: center; font-size: 4.2cqw; font-weight: 800; color: var(--ink); line-height: 1.3; margin-top: 3.2cqw; }
+.ext-blend-invite b { color: var(--orange-dk); font-weight: 800; }
+/* 하단 여백: 버튼 (v2 박스2 아래 63%~) */
+.ext-btns { top: 66%; left: 8.5%; width: 83%; display: flex; flex-direction: column; gap: 12px; }
+.ext-btns .btn-primary { background: #D3611D; }
+
+/* ---------- A 결과 하단 · 확장 스킨(v5) 오버레이 ---------- */
+.result-ext2 { position: relative; width: 100%; margin-top: -38%; container-type: inline-size; }
+.result-ext2 .ext-bg { display: block; width: 100%; height: auto; }
+.result-ext2 > *:not(.ext-bg) { position: absolute; }
+/* Box1: 궁합 (주황 박스 · y3.1~28.9%) */
+.ex-blend { left: 12%; width: 76%; top: 5%; height: 30%; display: flex; flex-direction: column; justify-content: flex-start; }
+.ex-title { font-size: 3.6cqw; font-weight: 800; color: var(--orange-dk); text-align: center; padding-bottom: 1cqw; margin-bottom: 1cqw; border-bottom: 2px solid rgba(232,132,60,0.25); }
+.ex-rows { display: flex; flex-direction: column; gap: 4cqw; }
+.exr { display: flex; align-items: center; gap: 2cqw; }
+.exr-medal { flex: 0 0 auto; width: 5cqw; text-align: center; font-size: 3.4cqw; }
+.exr-chip { flex: 0 0 auto; width: 7cqw; height: 7cqw; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 3.6cqw; overflow: hidden; }
+.exr-chip img { width: 5cqw; height: 5cqw; object-fit: contain; }
+.exr-info { flex: 1 1 auto; min-width: 0; text-align: left; font-size: 3cqw; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.exr-info b { color: var(--ink); font-weight: 800; }
+.exr-score { flex: 0 0 auto; font-family: 'Jalnan','Pretendard',sans-serif; font-size: 3.8cqw; }
+.ex-preview { opacity: 0.5; }
+.ex-invite { text-align: center; font-size: 4.1cqw; font-weight: 800; color: var(--ink); line-height: 1.35; margin-top: 1.4cqw; }
+.ex-invite b { color: var(--orange-dk); }
+.ex-more { text-align: center; font-size: 3.4cqw; font-weight: 800; color: var(--orange-dk); margin-top: 1.2cqw; cursor: pointer; }
+/* Box2: 대표카페 (검정 박스 · y46.9~72.5%, 📍·테이프는 스킨 내장) */
+.ex-cafe { left: 12%; width: 76%; top: 53%; height: 21%; display: flex; flex-direction: column; justify-content: flex-start; }
+.ex-cafe-title { font-size: 3.6cqw; font-weight: 800; color: var(--orange-dk); text-align: center; padding-bottom: 0.6cqw; margin-bottom: 0.6cqw; }
+.ex-cafe-list { display: flex; flex-direction: column; flex: none; justify-content: flex-start; }
+.ex-cafe-row { display: flex; align-items: baseline; gap: 2cqw; padding: 0.9cqw 0; border-bottom: 1px dashed rgba(74,52,33,0.14); }
+.ex-cafe-row:last-child { border-bottom: none; }
+.ex-cafe-b { font-weight: 800; font-size: 3cqw; color: var(--ink); white-space: nowrap; }
+.ex-cafe-m { font-size: 2.85cqw; color: #8A7159; }
+/* 버튼 (박스 사이/아래) · 진한 브라운으로 이모지 가독성 */
+.result-ext2 .btn { left: 10%; width: 80%; transform: translateY(-50%); }
+.ex-share { top: 40%; }
+.ex-order { top: 82.5%; }
+.ex-again { top: 90%; }
+.result-ext2 .btn-primary { background: #D3611D; }
+
+/* ---------- A 결과 · 저장용 카드 (크래프트 결) ---------- */
+.result-card {
+  position: relative; overflow: hidden;
+  /* 흰색 UI → 따뜻한 크래프트 종이 + 미세 텍스처 (히어로/씬과 결 맞춤) */
+  background-color: #FBF3E4;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  border: 2px solid #EFDDBE;
+  border-radius: var(--radius); box-shadow: var(--sh);
+  padding: 20px 18px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+}
+/* 결과 카드 배지는 작게 */
+.result-card .badge { font-size: 11px; padding: 5px 12px; gap: 4px; }
+/* 상단 테마 글로우 (취향군별 --accent) */
+.result-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 150px;
+  background: radial-gradient(120% 100% at 50% 0%, var(--accent-soft) 0%, rgba(255,253,248,0) 75%);
+  pointer-events: none;
+}
+.result-card > * { position: relative; z-index: 1; }
+/* 장식 레이어 (z-index 0): 결과 배경 일러(만들어오면 자동 반영) */
+.result-card > .rc-decor { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.result-scene { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.16; }
+.result-type-wrap { width: 100%; text-align: center; margin-top: 2px; }
+/* 타이틀 = 음료명 (크게) */
+.result-type {
+  display: inline-block; white-space: nowrap;
+  font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700;
+  font-size: 30px; line-height: 1.25; color: var(--accent);
+}
+/* 부타이틀 = 유형명 */
+.result-subtitle { text-align: center; font-size: 14px; font-weight: 700; color: var(--ink-soft); margin-top: 1px; }
+.result-drink {
+  position: relative; margin: 2px 0 4px; height: 178px; width: 100%;
+  display: flex; align-items: flex-end; justify-content: center; font-size: 120px; line-height: 1;
+  /* 음료가 뜬 느낌 제거 → 따뜻한 스포트라이트 씬 위에 얹힘 */
+  background: radial-gradient(52% 46% at 50% 50%, var(--accent-soft) 0%, rgba(251,243,228,0) 72%);
+}
+/* 바닥 그림자(접지감) */
+.result-drink::after {
+  content: ''; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 130px; height: 16px; border-radius: 50%;
+  background: rgba(74,52,33,0.16); filter: blur(4px);
+}
+.result-drink img { position: relative; z-index: 1; height: 172px; width: auto; max-width: 84%; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(74,52,33,0.20)); }
+.result-name { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 25px; color: var(--ink); }
+.result-desc { text-align: center; font-size: 13px; color: var(--ink-soft); line-height: 1.55; padding: 0 4px; }
+/* 맛·향·질감·온도 → 태그 한 줄 */
+.tags-row { display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; width: 100%; margin: 4px 0; }
+.tag {
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 11.5px; font-weight: 800; white-space: nowrap;
+  padding: 5px 9px; border-radius: var(--pill);
+}
+.why-box {
+  width: 100%; margin-top: 4px;
+  background: #FFFDF8; border: 1.5px solid var(--accent-soft);
+  border-radius: 14px; padding: 13px 15px;
+}
+.why-title { font-size: 12.5px; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+.why-body { font-size: 13px; line-height: 1.72; color: var(--ink); }
+.brandmark { margin-top: 8px; font-size: 11.5px; font-weight: 800; letter-spacing: 0.4px; color: var(--ink-soft); }
+.brandmark span { color: var(--accent); }
+.save-hint { text-align: center; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-top: 12px; }
+
+/* ---------- 결과 정보 표 (구) ---------- */
+.info-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14.5px; overflow: hidden; }
+.info-table td { padding: 11px 14px; border-bottom: 1px solid var(--line); }
+.info-table tr:last-child td { border-bottom: none; }
+.info-table td:first-child { color: var(--ink-soft); white-space: nowrap; font-weight: 700; width: 84px; }
+
+/* ---------- 유틸 ---------- */
+.center { text-align: center; }
+.mt-8 { margin-top: 8px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
+.divider { height: 2px; background: var(--line); margin: 22px 0; border: none; border-radius: 2px; }
+.muted { color: var(--ink-soft); }
+.hidden { display: none !important; }
+
+/* 남은 라우트 스텁 */
+.stub-note {
+  margin-top: 14px; padding: 12px 14px; border-radius: var(--radius-sm);
+  background: var(--card); border: 1.5px dashed var(--orange); color: var(--orange-dk);
+  font-size: 13px; line-height: 1.5;
+}
+
+/* ==========================================================
+   B 신버전 · 토핑 뽑기(룰렛) + 결과 (게임 배경 · 블렌드 이미지 · 순위)
+   ========================================================== */
+/* ---- b-start: 토핑 뽑기 게임 (풀스크린 게임 배경) ---- */
+.bgame { position: relative; width: 100%; min-height: 100vh; min-height: 100dvh; overflow: hidden; animation: fadeIn .35s ease both; }
+.bgame-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; z-index: 0; }
+.bg-head { position: absolute; top: 11.5%; left: 0; right: 0; z-index: 3; text-align: center; padding: 0 22px; }
+.bg-badge { display: inline-block; background: var(--ink); color: #fff; font-size: 12.5px; font-weight: 800; padding: 6px 14px; border-radius: 999px; margin-bottom: 10px; box-shadow: var(--sh-soft); }
+.bg-title { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 22px; line-height: 1.35; color: var(--ink); text-shadow: 0 1px 4px rgba(255,250,240,0.9); }
+.bg-title b { color: #C0432E; }
+/* STOP 낙하 연출: 토핑이 음료로 풍덩 + 물방울 + 컵 흔들림 */
+.bg-topping.drop { animation: bgDrop .8s cubic-bezier(.4,.05,.5,1) forwards; }
+.bg-topping.drop img { animation: none; }
+@keyframes bgDrop { 0% { transform: translateX(-50%) translateY(0); opacity: 1; } 100% { transform: translateX(-50%) translateY(42vh) rotate(350deg); opacity: 0; } }
+.bg-splash { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-size: 46px; opacity: 0; z-index: 4; animation: bgSplash .6s ease .55s forwards; }
+@keyframes bgSplash { 0% { opacity: 0; transform: translateX(-50%) scale(.4); } 45% { opacity: 1; transform: translateX(-50%) scale(1.1); } 100% { opacity: 0; transform: translateX(-50%) scale(1.3) translateY(-10px); } }
+.bg-drink img.shake { animation: shake .5s ease .5s; }
+.bg-stage { position: absolute; top: 27%; left: 0; right: 0; z-index: 2; height: 44%; display: flex; align-items: flex-end; justify-content: center; }
+.bg-drink img { height: 34vh; max-height: 320px; width: auto; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(74,52,33,0.30)); }
+.bg-topping { position: absolute; top: -4%; left: 50%; transform: translateX(-50%); z-index: 3; }
+.bg-topping img { width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(74,52,33,0.3)); animation: topBob .5s ease-in-out infinite alternate; }
+@keyframes topBob { from { transform: translateY(0); } to { transform: translateY(-9px); } }
+.bg-lower { position: absolute; bottom: 5%; left: 0; right: 0; z-index: 3; padding: 0 24px; }
+.bg-lower .input { text-align: center; }
+.bg-stop { width: 100%; font-size: 22px; padding: 20px; margin-top: 10px; background: var(--orange); }
+.bg-hint { text-align: center; font-size: 12.5px; font-weight: 600; color: #FFF3E0; margin-top: 10px; text-shadow: 0 1px 3px rgba(74,52,33,0.6); }
+
+/* ---- b-result: 결과 카드(스킨) + 순위 확장 ---- */
+.bresult2 { position: relative; width: 100%; background: var(--paper); animation: fadeIn .35s ease both; }
+.br-card { position: relative; width: 100%; container-type: inline-size; }
+.br-card .skin-bg { display: block; width: 100%; height: auto; }
+.br-card > *:not(.skin-bg) { position: absolute; }
+/* 등급 — 최상단 뱃지(pill) · 뒤로가기 버튼 라인 (v7 카드 위 여백) */
+.br-grade { top: 5.6%; left: 50%; transform: translate(-50%,-50%); font-size: 3cqw; font-weight: 800; color: var(--orange-dk); background: #FBEEDD; padding: 1.2cqw 3.6cqw; border-radius: 999px; white-space: nowrap; box-shadow: 0 1px 4px rgba(74,52,33,0.1); }
+.br-name { top: 17.5%; left: 50%; transform: translate(-50%,-50%); font-family: 'Jalnan','Pretendard',sans-serif; font-size: 6.6cqw; line-height: 1.1; color: var(--ink); white-space: nowrap; }
+.br-combo { top: 21.5%; left: 50%; transform: translate(-50%,-50%); font-size: 3cqw; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+.br-blend { top: 43.8%; left: 50%; transform: translate(-50%,-50%); height: 37%; display: flex; align-items: center; justify-content: center; }
+.br-blend img { height: 100%; width: auto; object-fit: contain; filter: drop-shadow(0 3cqw 4cqw rgba(74,52,33,0.16)); }
+/* 게이지·점수·한줄평 — 가운데 정렬 · 바 폭=배경 원 폭(67%) */
+.br-bar { top: 65.5%; left: 50%; transform: translateX(-50%); width: 67%; height: 3.2cqw; background: #F1E7D7; border-radius: 999px; overflow: hidden; }
+.br-bar-fill { height: 100%; border-radius: 999px; transition: width .9s cubic-bezier(.2,.7,.3,1); }
+.br-score { top: 70%; left: 50%; transform: translateX(-50%); font-size: 4.8cqw; font-weight: 800; white-space: nowrap; text-align: center; }
+.br-score b { font-size: 6.8cqw; }
+.br-copy { top: 75.5%; left: 50%; transform: translateX(-50%); font-size: 3cqw; font-weight: 600; color: var(--ink-soft); white-space: nowrap; text-align: center; }
+
+/* 하단 확장 스킨(ext-v2) 오버레이 · 카드 스킨 아래 빈 여백만큼 위로 당김(폭 기준 %) */
+.br-ext { position: relative; width: 100%; margin-top: -22%; container-type: inline-size; }
+.br-ext .ext-bg { display: block; width: 100%; height: auto; }
+.br-ext > *:not(.ext-bg) { position: absolute; }
+/* 순위 박스 (v4 주황 박스 y1.6~32.7%) */
+.br-rank { top: 5%; left: 12%; width: 76%; height: 36%; display: flex; flex-direction: column; justify-content: flex-start; }
+.br-rank-title { font-size: 3.5cqw; font-weight: 800; color: var(--orange-dk); text-align: center; padding-bottom: 1cqw; margin-bottom: 2cqw; border-bottom: 2px solid rgba(232,132,60,0.22); }
+.br-rank-list { display: flex; flex-direction: column; gap: 3.6cqw; }
+.brk-row { display: flex; align-items: center; gap: 2cqw; padding: 0.6cqw 0; }
+.brk-row.mine { background: #FFE4C2; border: 1.5px solid var(--orange); border-radius: 2.4cqw; padding: 1cqw 1.8cqw; }
+.brk-medal { flex: 0 0 auto; width: 5cqw; text-align: center; font-size: 3.3cqw; font-weight: 800; color: var(--ink-soft); }
+.brk-chip { flex: 0 0 auto; width: 6.5cqw; height: 6.5cqw; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.brk-chip img { width: 4.6cqw; height: 4.6cqw; object-fit: contain; }
+.brk-info { flex: 1 1 auto; min-width: 0; text-align: left; font-size: 3cqw; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brk-info b { color: var(--ink); font-weight: 800; }
+.brk-score { flex: 0 0 auto; font-family: 'Jalnan','Pretendard',sans-serif; font-size: 3.6cqw; }
+.br-myrank { text-align: center; font-size: 3.4cqw; font-weight: 800; color: var(--ink); margin-top: 1.4cqw; }
+.br-myrank b { color: var(--orange-dk); }
+/* 캡쳐 안내 + 버튼 (박스 아래 크래프트 영역) */
+.br-capture { position: absolute; top: 46%; left: 8%; width: 84%; text-align: center; font-size: 3.4cqw; font-weight: 700; color: var(--ink-soft); }
+.br-ext .btn { left: 8%; width: 84%; transform: translateY(-50%); }
+.br-cta1 { top: 52.5%; background: #D3611D; }
+.br-orderhint { position: absolute; top: 60.5%; left: 8%; width: 84%; text-align: center; font-size: 3.4cqw; font-weight: 700; color: var(--maple); }
+.br-cta2 { top: 66.5%; background: var(--card); color: var(--ink); box-shadow: var(--sh-soft); }
