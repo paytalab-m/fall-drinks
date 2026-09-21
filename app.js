@@ -271,8 +271,10 @@ function ensureRedoBtn() {
     b.addEventListener('click', () => {
       const { route, params } = parseHash();
       if (route === 'b-result' && params.ownerId) {
-        LS.remove(participatedKey(params.ownerId)); // 재참여 허용(안 지우면 b-start가 즉시 b-result로 되돌림)
-        location.hash = 'b-start?' + new URLSearchParams({ ownerId: params.ownerId, baseDrink: params.baseDrink || '' }).toString();
+        confirmModal('다시 하면 지금 뽑은\n토핑 궁합 결과가 사라져요.\n다시 뽑을까요?', '다시 뽑기', () => {
+          LS.remove(participatedKey(params.ownerId)); // 재참여 허용(안 지우면 b-start가 즉시 b-result로 되돌림)
+          location.hash = 'b-start?' + new URLSearchParams({ ownerId: params.ownerId, baseDrink: params.baseDrink || '' }).toString();
+        });
       } else {
         location.hash = 'a-start';
       }
@@ -319,7 +321,7 @@ function router() {
   if ((RESULT_ROUTES.includes(route) || route === 'a-board') && params.ownerId) {
     boardPoll = setInterval(() => {
       syncBoard(params.ownerId, ch => { if (ch && parseHash().route === route) router(); });
-    }, 8000); // ponytail: 8s 고정 폴링. 유입 커지면 SSE/롱폴 검토
+    }, 2000); // ponytail: 2s 폴링. Apps Script 응답(1~2s)과 비슷해 요청이 겹칠 수 있음(기능엔 무방). 대량 노출 시 부하↑ → 정규화 때 실시간DB 검토
   }
   window.scrollTo(0, 0);
   console.log('[router]', route, params);
@@ -675,9 +677,11 @@ function renderAResult(app, p) {
       LS.remove('passorder_ownerId');         // 새 판 = 새 ownerId (기존 기록과 분리)
       location.hash = 'a-start';
     };
-    // 친구 참여 기록이 있으면 인앱 모달로 경고 후 진행
-    if (getBoard(ownerId).length) confirmModal('다시 하면 친구들이 남긴\n토핑 참여 기록이 사라져요.\n계속할까요?', '다시 하기', reset);
-    else reset();
+    // 항상 확인 모달. 친구 참여 유무에 따라 문구만 다르게.
+    const msg = getBoard(ownerId).length
+      ? '다시 하면 친구들이 남긴\n토핑 참여 기록이 사라져요.\n계속할까요?'
+      : '다시 하면 지금 결과가 사라지고\n처음부터 시작해요.\n계속할까요?';
+    confirmModal(msg, '다시 하기', reset);
   });
 
   syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }); // 원격(다른 기기) 참여 합산
