@@ -193,11 +193,10 @@ function orderDeepLink(query, nick, menu) {
 async function shareContent(message) {
   // 메시지 안의 실제 공유 링크 추출 (http/https/file 모두 · 없으면 현재 URL)
   const link = (message.match(/(?:https?|file):\/\/\S+/) || [location.href])[0];
-  const text = message.replace(link, '').trim(); // 미리보기 카드 중복 방지: 텍스트에서 링크 제거(url 필드로만 미리보기)
-  // 1) 웹 표준 공유하기 (Web Share API) — 폰 네이티브 공유시트(카톡·메시지·링크복사)
-  //    ※ https/localhost 등 보안 컨텍스트에서만 동작. 아니면 아래로 폴백.
+  // 1) 웹 표준 공유하기 (Web Share API) — url만 공유 → OG 카드 1개(이미지+제목+설명). 별도 텍스트 버블 없음.
+  //    초대 문구는 og:description(index.html)에 넣어 카드 안에 표시됨.
   if (navigator.share) {
-    try { await navigator.share({ title: '가을 음료 취향 테스트', text: text, url: link }); return; }
+    try { await navigator.share({ title: '가을 음료 취향 테스트', url: link }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; /* 사용자가 취소 */ }
   }
   // 2) 패스오더 앱 웹뷰 네이티브 브리지
@@ -627,14 +626,14 @@ function fitOneLine(el, maxPx, minPx) {
 }
 
 // B 초대 링크: 절대 URL (#b-start?ownerId=..&baseDrink=..)
+// 공유·초대 링크는 패스링크로 (해시·쿼리 보존 확인됨 → b-start/a-board 정상 진입)
+const SHARE_BASE = 'https://passorder.kr/fall-drinks';
 function shareUrlForB(ownerId, baseDrink) {
-  const base = location.origin + location.pathname;
-  return `${base}#b-start?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
+  return `${SHARE_BASE}#b-start?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
 }
 // 순위판(a-board) 공유 URL
 function shareUrlForBoard(ownerId, baseDrink) {
-  const base = location.origin + location.pathname;
-  return `${base}#a-board?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
+  return `${SHARE_BASE}#a-board?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
 }
 
 /* ---------------- #b-start · 토핑 뽑기 (b-start + b-pick 결합 · 룰렛) ---------------- */
