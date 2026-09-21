@@ -91,6 +91,7 @@ function preloadImg(p) { try { new Image().src = assetURL(p); } catch {} }
 const LS = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  remove(k) { try { localStorage.removeItem(k); } catch {} },
 };
 
 // URL 파라미터: 해시 뒤 쿼리(#route?ownerId=..) 파싱
@@ -274,6 +275,7 @@ function ensureRedoBtn() {
 }
 
 const RESULT_ROUTES = ['a-result', 'b-result'];
+let boardPoll = null; // 순위판 자동 업데이트용 폴링 타이머
 function router() {
   const { route, params } = parseHash();
   const render = ROUTES[route] || renderNotFound;
@@ -285,7 +287,14 @@ function router() {
   const noBack = route === 'a-start' || route === 'b-start' || route === 'b-loading' || RESULT_ROUTES.includes(route);
   ensureBackBtn().style.display = noBack ? 'none' : 'flex';
   ensureRedoBtn().style.display = (route === 'b-result') ? 'flex' : 'none'; // a-result는 새로고침 오해 소지로 숨김
-  if (route !== 'a-quiz') logStep(route, params.ownerId); // 화면 도달(퀴즈는 문항별로 renderQuizStep에서)
+  if (route !== 'a-quiz') logStep(route, params.ownerId, route[0] === 'b' ? params.bnick : session.nick); // 화면 도달(퀴즈는 문항별로 renderQuizStep에서)
+  // 순위판·결과창에서만 원격 참여를 주기적으로 재조회(자동 업데이트). 다른 화면 진입 시 정리.
+  if (boardPoll) { clearInterval(boardPoll); boardPoll = null; }
+  if ((RESULT_ROUTES.includes(route) || route === 'a-board') && params.ownerId) {
+    boardPoll = setInterval(() => {
+      syncBoard(params.ownerId, ch => { if (ch && parseHash().route === route) router(); });
+    }, 8000); // ponytail: 8s 고정 폴링. 유입 커지면 SSE/롱폴 검토
+  }
   window.scrollTo(0, 0);
   console.log('[router]', route, params);
 }
@@ -299,6 +308,12 @@ window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', () => {
   session.entry = new URLSearchParams(location.search).get('utm_source') || 'direct'; // 진입 채널
   ['assets/loading/1.png','assets/loading/2.png','assets/loading/3.png'].forEach(preloadImg); // 로더 프레임 미리로드(깜빡임 방지)
+  // A 완주자 재방문: 시작/루트로 들어오면 다시하기 전까지 결과 페이지로. (b-* 공유링크·기존 딥링크는 그대로 둠)
+  const aDone = LS.get('passorder_a_done');
+  if (aDone && aDone.ownerId && parseHash().route === 'a-start') { // 빈 해시도 parseHash가 a-start로 취급
+    // replaceState = hashchange 미발생 → 중복 렌더/이벤트로그 없이 결과로 복원
+    history.replaceState(null, '', '#a-result?' + new URLSearchParams({ ownerId: aDone.ownerId, baseDrink: aDone.baseDrink }).toString());
+  }
   router();
   if (location.search.includes('selftest') || location.hash.includes('selftest')) selftest();
 });
@@ -372,10 +387,10 @@ function postResult(ownerId, baseDrink) {
   sheetPost_({ type: 'result', owner_id: ownerId, nick: session.nick, vid: getVid(),
     entry: session.entry || 'direct', drink_id: baseDrink, drink_name: d ? d.name : '' });
 }
-// 화면 도달 로그(퍼널·이탈). role은 단계 접두사로 판별
-function logStep(step, ownerId) {
+// 화면 도달 로그(퍼널·이탈). role은 단계 접두사로 판별. nick = 행동한 사람(A/친구) 닉
+function logStep(step, ownerId, nick) {
   sheetPost_({ type: 'step', vid: getVid(), role: (step && step[0] === 'b') ? 'B' : 'A',
-    owner_id: ownerId || '', step: step });
+    owner_id: ownerId || '', nick: nick || session.nick || '', step: step });
 }
 // 버튼 플래그 (tab='result'|'join')
 function flagClick(tab, field, ownerId) {
@@ -510,7 +525,7 @@ function renderQuizStep(app) {
   app.querySelectorAll('.option').forEach(btn => {
     btn.addEventListener('click', () => onQuizAnswer(key, kind, Number(btn.dataset.i)));
   });
-  logStep('a-quiz-' + (quizState.step + 1), session.ownerId); // 문항별 이탈 측정
+  logStep('a-quiz-' + (quizState.step + 1), session.ownerId, session.nick); // 문항별 이탈 측정
 }
 
 function onQuizAnswer(key, kind, idx) {
@@ -530,6 +545,7 @@ function finishQuiz() {
   const baseDrink = resolveDrink(group, quizState.q6 || 'a');
   const ownerId = getOrCreateOwnerId(session.nick);
   session.group = group; session.baseDrink = baseDrink;
+  LS.set('passorder_a_done', { ownerId, baseDrink }); // 재방문 시 다시하기 전까지 결과 유지
   postResult(ownerId, baseDrink); // 내 결과 저장(원격 시트)
 
   // 결과 화면 이미지 미리로드(로딩 1.6s 동안) → 결과 도달 시 즉시 표시
@@ -625,7 +641,15 @@ function renderAResult(app, p) {
     shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해서 우리만의 커스텀 음료를 만들어보자!\n${url}`);
   });
   app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(d.name, aNick, d.name); });
-  app.querySelector('#aAgainBtn').addEventListener('click', () => { flagClick('result', '다시하기클릭', ownerId); location.hash = 'a-start'; });
+  app.querySelector('#aAgainBtn').addEventListener('click', () => {
+    // 친구 참여 기록이 있으면 사라진다고 경고 후 진행
+    if (getBoard(ownerId).length && !confirm('다시 하면 친구들이 남긴 토핑 참여 기록이 사라져요.\n계속할까요?')) return;
+    flagClick('result', '다시하기클릭', ownerId);
+    LS.remove('passorder_a_done');          // 결과 유지 해제 → 시작 화면부터
+    LS.remove(boardKey(ownerId));           // 이 판의 친구 참여 기록 비움
+    LS.remove('passorder_ownerId');         // 새 판 = 새 ownerId (기존 기록과 분리)
+    location.hash = 'a-start';
+  });
 
   syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }); // 원격(다른 기기) 참여 합산
 }
@@ -886,7 +910,9 @@ function syncBoard(ownerId, onDone) {
   const cb = '__bcb' + Math.random().toString(36).slice(2, 8);
   const s = document.createElement('script');
   const cleanup = () => { try { delete window[cb]; } catch {} s.remove(); };
-  window[cb] = (resp) => { let ch = false; try { ch = mergeBoard(ownerId, resp && resp.board); } finally { cleanup(); onDone && onDone(ch); } };
+  window[cb] = (resp) => { let ch = false; try { ch = mergeBoard(ownerId, resp && resp.board);
+    console.log('[syncBoard] ownerId=', ownerId, '· 원격', (resp && resp.board || []).length, '건 · 변경', ch); // 진단: A조회 ownerId와 원격 건수 확인
+  } finally { cleanup(); onDone && onDone(ch); } };
   s.onerror = cleanup;
   s.src = BOARD_API + '?action=board&owner_id=' + encodeURIComponent(ownerId) + '&callback=' + cb;
   document.body.appendChild(s);
