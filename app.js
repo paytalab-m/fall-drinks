@@ -221,7 +221,7 @@ async function shareContent(message) {
 window.shareContent = shareContent;
 
 // 세션 상태 (A 진행 중 임시 저장)
-const session = { nick: '', answers: {}, group: null, baseDrink: null };
+const session = { nick: '', answers: {}, group: null, baseDrink: null, ownerId: '' };
 
 /* =========================================================
    5) ROUTER
@@ -428,6 +428,7 @@ function renderAStart(app) {
     const nick = input.value.trim();
     if (!nick) { flagInput(input, '닉네임을 입력해주세요'); return; }
     session.nick = nick;
+    session.ownerId = getOrCreateOwnerId(nick); // 퀴즈 단계부터 owner_id 붙이려고 미리 생성
     quizState = { step: 0, answers: {}, group: null, q6: null, prologueDone: false };
     navigate('a-quiz');
   };
@@ -504,7 +505,7 @@ function renderQuizStep(app) {
   app.querySelectorAll('.option').forEach(btn => {
     btn.addEventListener('click', () => onQuizAnswer(key, kind, Number(btn.dataset.i)));
   });
-  logStep('a-quiz-' + (quizState.step + 1)); // 문항별 이탈 측정
+  logStep('a-quiz-' + (quizState.step + 1), session.ownerId); // 문항별 이탈 측정
 }
 
 function onQuizAnswer(key, kind, idx) {

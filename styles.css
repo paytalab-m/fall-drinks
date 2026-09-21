@@ -66,13 +66,7 @@ body { display: flex; justify-content: center; }
   background-attachment: fixed, fixed, fixed;
 }
 
-/* 풀블리드 배경 일러스트(연하게) — assets/scenes/bg.png 넣으면 은은하게 깔림.
-   없으면 위 .app 그라데이션이 그대로 배경. */
-.app::before {
-  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: url('assets/scenes/bg.png') top center / cover no-repeat;
-  opacity: 0.18;
-}
+/* 배경은 .app 그라데이션 사용. (이전 bg.png 오버레이는 파일 미존재 404라 제거) */
 .page { position: relative; z-index: 1; }
 
 /* 제목 계열 */
