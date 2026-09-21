@@ -46,6 +46,9 @@ html, body {
   letter-spacing: -0.3px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* 안드로이드 웹뷰 자동 폰트 확대(font boosting) 차단 — 스킨 위 텍스트 삐져나감 방지 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   background: var(--paper);
 }
 body { display: flex; justify-content: center; }
@@ -810,6 +813,15 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .exr-info b { color: var(--ink); font-weight: 800; }
 .exr-score { flex: 0 0 auto; font-family: 'Jalnan','Pretendard',sans-serif; font-size: 3.8cqw; }
 .ex-preview { opacity: 0.5; }
+
+/* 순위 행 등장 — 재접속·실시간 반영으로 재렌더될 때마다 하나씩 다다닥 */
+@keyframes rankPop { 0% { opacity: 0; transform: translateY(10px) scale(.96); } 60% { transform: translateY(-2px) scale(1.01); } 100% { opacity: 1; transform: none; } }
+.ex-rows:not(.ex-preview) .exr,
+.br-rank-list .brk-row { animation: rankPop .42s cubic-bezier(.2,.7,.3,1) both; }
+.ex-rows:not(.ex-preview) .exr:nth-child(1), .br-rank-list .brk-row:nth-child(1) { animation-delay: .05s; }
+.ex-rows:not(.ex-preview) .exr:nth-child(2), .br-rank-list .brk-row:nth-child(2) { animation-delay: .16s; }
+.ex-rows:not(.ex-preview) .exr:nth-child(3), .br-rank-list .brk-row:nth-child(3) { animation-delay: .27s; }
+.ex-rows:not(.ex-preview) .exr:nth-child(4), .br-rank-list .brk-row:nth-child(4) { animation-delay: .38s; }
 .ex-invite { text-align: center; font-size: 4.1cqw; font-weight: 800; color: var(--ink); line-height: 1.35; margin-top: 1.4cqw; }
 .ex-invite b { color: var(--orange-dk); }
 .ex-more { text-align: center; font-size: 3.4cqw; font-weight: 800; color: var(--orange-dk); margin-top: 1.2cqw; cursor: pointer; }
