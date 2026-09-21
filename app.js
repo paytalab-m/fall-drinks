@@ -207,13 +207,14 @@ async function shareContent(message) {
     try { await navigator.share({ title: '가을 음료 취향 테스트', url: link }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; /* 사용자가 취소 */ }
   }
-  // 2) 패스오더 앱 웹뷰 네이티브 브리지
+  // 2) 패스오더 앱 웹뷰 네이티브 브리지 — url만 전달 → OG 카드 1개.
+  //    message를 같이 넘기면 앱이 초대문구+링크를 별도 텍스트 버블로 하나 더 보냄(중복). 초대문구는 og:description(카드 안)에 있음.
   const ua = navigator.userAgent.toLowerCase();
   if (ua.includes('android') && window.shareLink) {
-    window.shareLink.postMessage(JSON.stringify({ message, url: link })); return;
+    window.shareLink.postMessage(JSON.stringify({ url: link })); return;
   }
   if (ua.includes('iphone') && window.webkit?.messageHandlers?.shareLink) {
-    window.webkit.messageHandlers.shareLink.postMessage({ message, url: link }); return;
+    window.webkit.messageHandlers.shareLink.postMessage({ url: link }); return;
   }
   // 3) 폴백: 클립보드 복사 → 프롬프트
   if (navigator.clipboard && navigator.clipboard.writeText) {
