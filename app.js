@@ -201,31 +201,51 @@ function orderDeepLink(query, nick, menu) {
 async function shareContent(message) {
   // 메시지 안의 실제 공유 링크 추출 (http/https/file 모두 · 없으면 현재 URL)
   const link = (message.match(/(?:https?|file):\/\/\S+/) || [location.href])[0];
-  // 1) 웹 표준 공유하기 (Web Share API) — url만 공유 → OG 카드 1개(이미지+제목+설명). 별도 텍스트 버블 없음.
-  //    초대 문구는 og:description(index.html)에 넣어 카드 안에 표시됨.
+  const text = message.replace(link, '').trim(); // 브릿지 message는 링크 제외 초대문구 (앱이 message+url 합쳐 공유)
+  const ua = navigator.userAgent.toLowerCase();
+  const shareData = { message: text, url: link };
+  // 1) 패스오더 앱 웹뷰 네이티브 브릿지 — 최우선. 브릿지는 앱에서 열렸을 때만 주입됨(브라우저엔 없음).
+  //    프로덕션(온라인쇼핑몰 템플릿)과 동일 규격: {message,url} 전달, 안드로이드는 JSON 문자열.
+  //    ⚠️ navigator.share보다 먼저 — 앱 웹뷰의 navigator.share가 멈추면 버튼이 먹통이 됨.
+  if (ua.includes('android') && window.shareLink && window.shareLink.postMessage) {
+    window.shareLink.postMessage(JSON.stringify(shareData)); return;
+  }
+  if ((ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) && window.webkit?.messageHandlers?.shareLink) {
+    window.webkit.messageHandlers.shareLink.postMessage(shareData); return;
+  }
+  // 2) 웹 표준 공유 (앱 밖 모바일 브라우저 — 카톡/사파리/크롬). url만 → OG 카드 1개.
   if (navigator.share) {
     try { await navigator.share({ title: '가을 음료 취향 테스트', url: link }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; /* 사용자가 취소 */ }
   }
-  // 2) 패스오더 앱 웹뷰 네이티브 브리지 — url만 전달 → OG 카드 1개.
-  //    message를 같이 넘기면 앱이 초대문구+링크를 별도 텍스트 버블로 하나 더 보냄(중복). 초대문구는 og:description(카드 안)에 있음.
-  const ua = navigator.userAgent.toLowerCase();
-  if (ua.includes('android') && window.shareLink) {
-    window.shareLink.postMessage(JSON.stringify({ url: link })); return;
-  }
-  if (ua.includes('iphone') && window.webkit?.messageHandlers?.shareLink) {
-    window.webkit.messageHandlers.shareLink.postMessage({ url: link }); return;
-  }
-  // 3) 폴백: 클립보드 복사 → 프롬프트
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(link)
-      .then(() => alert('링크가 복사됐어요! 📋\n새 탭에 붙여넣어 열어보세요.\n\n' + link))
-      .catch(() => prompt('아래 링크를 복사하세요 (Ctrl/Cmd+C)', link));
-  } else {
-    prompt('아래 링크를 복사하세요 (Ctrl/Cmd+C)', link);
-  }
+  // 3) 폴백: 인앱 "링크 복사" 모달 (데스크톱 등 공유 API 없는 환경)
+  shareFallbackModal(link);
 }
 window.shareContent = shareContent;
+
+// 공유 API·앱 브릿지가 없을 때: 링크를 보여주고 복사시키는 모달 (어떤 환경에서도 동작)
+function shareFallbackModal(link) {
+  if (document.querySelector('.cm-share')) return;
+  const ov = document.createElement('div');
+  ov.className = 'cm-share';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:320px;width:100%;padding:22px 20px;box-shadow:0 12px 40px rgba(0,0,0,.25)">' +
+    '<div style="font-size:15px;font-weight:700;color:#2C2C2A;text-align:center;margin-bottom:6px">🔗 친구에게 공유</div>' +
+    '<div style="font-size:12.5px;color:#6E6E73;text-align:center;line-height:1.5;margin-bottom:12px">아래 링크를 복사해 친구에게 보내주세요.</div>' +
+    '<input id="cmShareInput" readonly value="' + link + '" style="width:100%;box-sizing:border-box;font-size:12px;padding:9px 10px;border:1px solid #E5E2D8;border-radius:10px;color:#3B2A1E;margin-bottom:12px" />' +
+    '<div style="display:flex;gap:10px"><button class="btn btn-ghost" id="cmShareClose" type="button" style="flex:1">닫기</button>' +
+    '<button class="btn btn-primary" id="cmShareCopy" type="button" style="flex:1">복사하기</button></div></div>';
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  const input = ov.querySelector('#cmShareInput');
+  ov.querySelector('#cmShareClose').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.querySelector('#cmShareCopy').addEventListener('click', () => {
+    const done = () => { const b = ov.querySelector('#cmShareCopy'); if (b) b.textContent = '복사됨 ✓'; };
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(link).then(done).catch(() => { input.select(); try { document.execCommand('copy'); done(); } catch {} }); }
+      else { input.select(); document.execCommand('copy'); done(); } } catch { input.select(); }
+  });
+}
 
 // 세션 상태 (A 진행 중 임시 저장)
 const session = { nick: '', answers: {}, group: null, baseDrink: null, ownerId: '' };
@@ -754,6 +774,11 @@ function renderBStart(app, p) {
   const { ownerId, baseDrink } = p;
   const d = DRINKS[baseDrink];
   if (!ownerId || !d) { stub(app, '잘못된 링크', '공유 링크 정보가 없어요. 친구에게 링크를 다시 받아주세요.'); return; }
+
+  // 본인이 자기 공유 링크를 누른 경우: 친구용 토핑 참여(b) 대신 내 A결과로 (순위판 자기 오염 방지)
+  const aDone = LS.get('passorder_a_done');
+  if (aDone && aDone.ownerId === ownerId) { navigate('a-result', { ownerId, baseDrink: aDone.baseDrink }); return; }
+
   const aNick = ownerNickFromId(ownerId);
 
   // 재참여 방지: 이미 담았으면 결과로 바로 이동
