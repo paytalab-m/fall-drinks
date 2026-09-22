@@ -303,6 +303,22 @@ function confirmModal(message, okLabel, onOk) {
   ov.querySelector('#cmOk').addEventListener('click', () => { close(); onOk(); });
 }
 
+// 단일 버튼 안내 팝업 (실제 오류 시에만). 중복 스택 방지.
+function noticeModal(message) {
+  if (document.querySelector('.cm-notice')) return;
+  const ov = document.createElement('div');
+  ov.className = 'cm-notice';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:320px;width:100%;padding:24px 20px;box-shadow:0 12px 40px rgba(0,0,0,.25)">' +
+    '<div style="font-size:15px;line-height:1.6;color:#2C2C2A;white-space:pre-line;text-align:center;margin-bottom:18px">' + message + '</div>' +
+    '<button class="btn btn-primary" id="cmClose" type="button" style="width:100%">확인</button></div>';
+  document.body.appendChild(ov);
+  const close = () => ov.remove();
+  ov.querySelector('#cmClose').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+}
+var BOARD_ERR_MSG = '지금 접속이 몰려 순위 확인이 잠시 지연되고 있어요.\n잠시 후 다시 시도해 주세요 🙏';
+
 const RESULT_ROUTES = ['a-result', 'b-result'];
 let lastBoardCheck = 0; // 마지막 순위판 조회 시각
 function boardCheckedText() {
@@ -310,11 +326,13 @@ function boardCheckedText() {
   const d = new Date(lastBoardCheck);
   return `마지막 확인 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
-// 순위 섹션 공용: "친구 참여 확인하기" 버튼 + 안내 + 마지막 확인시간
-function refreshBlock() {
+// 순위 새로고침. 'full'(a-board, 여유)=안내문장+확인시간 / 'skin'(a-result, 빠듯)=버튼만.
+function refreshBlock(mode) {
+  var meta = '';
+  if (mode === 'full') meta = `친구가 토핑을 넣었다면 눌러서 확인해보세요.${lastBoardCheck ? ` · ${boardCheckedText()}` : ''}`;
   return `<div class="rank-refresh-wrap">
     <button id="rankRefreshBtn" class="rank-refresh-btn" type="button">🔄 친구 참여 확인하기</button>
-    <div class="rank-refresh-meta">친구가 토핑을 넣었다면 눌러서 확인해보세요.${lastBoardCheck ? ` · ${boardCheckedText()}` : ''}</div>
+    ${meta ? `<div class="rank-refresh-meta">${meta}</div>` : ''}
   </div>`;
 }
 // 새로고침: 조회 중 버튼 비활성화(연속클릭 방지) → 완료 시 재렌더(최신 순위+확인시간)
@@ -326,6 +344,9 @@ function refreshBoard(ownerId) {
     const r = parseHash().route;
     if (r === 'a-result' || r === 'b-result' || r === 'a-board') router();
     else if (btn) { btn.disabled = false; btn.textContent = '🔄 친구 참여 확인하기'; }
+  }, () => { // 실제 조회 장애 시에만
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 친구 참여 확인하기'; }
+    noticeModal(BOARD_ERR_MSG);
   });
 }
 window.refreshBoard = refreshBoard;
@@ -347,10 +368,8 @@ function router() {
   console.log('[router]', route, params);
 }
 
-// 순위판 실시간 갱신: 다른 탭에서 참여(localStorage board 변경)하거나 탭 복귀 시 결과창 재렌더
-function refreshIfBoardView() { if (RESULT_ROUTES.includes(parseHash().route) || parseHash().route === 'a-board') router(); }
-window.addEventListener('storage', e => { if (e.key && e.key.startsWith('passorder_board')) refreshIfBoardView(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshIfBoardView(); });
+// 순위판 갱신 = 진입 시 1회(각 render의 syncBoard) + "친구 참여 확인하기" 버튼만.
+// (자동 폴링·탭복귀·storage 자동갱신 없음 → 반복 요청 최소화)
 
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', () => {
@@ -670,7 +689,7 @@ function renderAResult(app, p) {
         <div class="ex-blend">
           <div class="ex-title">🏆 친구와의 토핑 궁합</div>
           ${blendBox}
-          ${refreshBlock()}
+          ${refreshBlock('skin')}
         </div>
         <button class="btn btn-primary ex-share" id="shareBtn">🔗 친구에게 토핑 부탁하기</button>
         <div class="ex-cafe">
@@ -706,7 +725,7 @@ function renderAResult(app, p) {
     confirmModal(msg, '다시 하기', reset);
   });
 
-  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }); // 원격(다른 기기) 참여 합산
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }, () => noticeModal(BOARD_ERR_MSG)); // 원격 합산(실패 시 안내)
 }
 
 // 인라인블록 텍스트가 부모 폭을 넘으면 minPx까지 폰트 축소 (nowrap 1줄 보장)
@@ -853,7 +872,7 @@ function renderBResult(app, p) {
     addToBoard(ownerId, entry);
     postParticipation(ownerId, entry); // 원격(다른 기기 합산)에도 기록
   }
-  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'b-result') router(); }); // 원격 참여 합산
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'b-result') router(); }, () => noticeModal(BOARD_ERR_MSG)); // 원격 합산(실패 시 안내)
 
   const low = r.score <= 50; // 0~50% → 당황 다람쥐 스킨
   const skin = low ? 'scenario-b-result-skin-10-50-blank-v7' : 'scenario-b-result-skin-blank-v7';
@@ -893,7 +912,6 @@ function renderBResult(app, p) {
           <div class="br-rank-title">🏆 ${aNick}님의 가을 음료 궁합 순위</div>
           <div class="br-rank-list">${rankRows}</div>
           <div class="br-myrank">나는 전체 <b>${total}</b>명 중 <b>${myRank}위</b>!</div>
-          ${refreshBlock()}
         </div>
         <div class="br-capture">📸 결과를 캡쳐해서 친구에게 공유해 보세요!</div>
         <button class="btn btn-primary br-cta1" id="bRedoBtn">🍁 나도 가을 취향 테스트하기</button>
@@ -902,7 +920,6 @@ function renderBResult(app, p) {
       </div>
     </div>`;
 
-  app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, orderQuery, r.blendName); });
   app.querySelector('#bRedoBtn').addEventListener('click', () => { flagClick('join', '나도테스트클릭', ownerId); session.entry = 'from_friend'; location.hash = 'a-start'; });
 
@@ -968,16 +985,22 @@ function postParticipation(ownerId, entry) {
     topping_id: entry.topping, topping_name: t ? t.name : '',
     score: entry.score, blend_name: entry.blendName });
 }
-// 원격 순위판 읽기(JSONP: Apps Script는 CORS-GET 불가라 script 태그로) → 병합 후 onDone(changed)
-function syncBoard(ownerId, onDone) {
+// 원격 순위판 읽기(JSONP) → 병합 후 onDone(changed). 실패(네트워크·8s 타임아웃) 시 onError('사유').
+// no-cors 저장과 달리 조회는 실패를 감지할 수 있어, 진짜 장애일 때만 onError가 불린다.
+function syncBoard(ownerId, onDone, onError) {
   if (!BOARD_API) return;
   const cb = '__bcb' + Math.random().toString(36).slice(2, 8);
   const s = document.createElement('script');
-  const cleanup = () => { try { delete window[cb]; } catch {} s.remove(); };
-  window[cb] = (resp) => { let ch = false; try { ch = mergeBoard(ownerId, resp && resp.board);
-    console.log('[syncBoard] ownerId=', ownerId, '· 원격', (resp && resp.board || []).length, '건 · 변경', ch); // 진단: A조회 ownerId와 원격 건수 확인
-  } finally { cleanup(); onDone && onDone(ch); } };
-  s.onerror = cleanup;
+  let settled = false;
+  let timer = null;
+  const cleanup = () => { try { delete window[cb]; } catch {} s.remove(); if (timer) clearTimeout(timer); };
+  const fail = (why) => { if (settled) return; settled = true; cleanup(); console.log('[syncBoard] 실패:', why); onError && onError(why); };
+  timer = setTimeout(() => fail('timeout'), 8000); // 정상 응답 1~2s → 8s 넘으면 장애로 간주
+  window[cb] = (resp) => { if (settled) return; settled = true; let ch = false;
+    try { ch = mergeBoard(ownerId, resp && resp.board);
+      console.log('[syncBoard] ownerId=', ownerId, '· 원격', (resp && resp.board || []).length, '건 · 변경', ch);
+    } finally { cleanup(); onDone && onDone(ch); } };
+  s.onerror = () => fail('network');
   s.src = BOARD_API + '?action=board&owner_id=' + encodeURIComponent(ownerId) + '&callback=' + cb;
   document.body.appendChild(s);
 }
@@ -988,7 +1011,7 @@ function renderABoard(app, p) {
   const d = DRINKS[baseDrink];
   if (!ownerId || !d) { stub(app, '순위판 없음', '공유 링크 정보가 없어요.'); return; }
   const aNick = ownerNickFromId(ownerId);
-  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-board') router(); }); // 진입 즉시 원격 반영
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-board') router(); }, () => noticeModal(BOARD_ERR_MSG)); // 진입 즉시 원격 반영(실패 시 안내)
   const list = getBoard(ownerId).slice().sort((a, b) => b.score - a.score);
 
   const rows = list.map((e, i) => {
@@ -1013,7 +1036,7 @@ function renderABoard(app, p) {
         <h1 class="headline title-font" style="font-size:23px;margin-top:14px">${aNick}님의 ${d.name}에<br/>친구들이 담아준 토핑</h1>
         <div class="muted" style="font-size:13.5px;margin-top:2px">궁합이 높은 순서로 보여줘요</div>
       </div>
-      ${refreshBlock()}
+      ${refreshBlock(true)}
       <div class="board-list">${rows || `
         ${['🥇', '🥈', '🥉'].map(m => `<div class="board-row is-skeleton" aria-hidden="true"><div class="board-rank">${m}</div><div class="board-chip">🍯</div><div class="board-info"><div class="board-nick">친구</div><div class="board-blend">토핑 블렌딩</div></div><div class="board-score">?<span>%</span></div></div>`).join('')}
         <div class="board-empty">아직 참여한 친구가 없어요.<br/>링크를 공유하면 위처럼 순위가 채워져요!</div>`}</div>
