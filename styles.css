@@ -978,6 +978,13 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 /* 순위 박스 (v4 주황 박스 y1.6~32.7%) */
 .br-rank { top: 5%; left: 12%; width: 76%; height: 36%; display: flex; flex-direction: column; justify-content: flex-start; }
 .br-rank-title { font-size: 3.5cqw; font-weight: 800; color: var(--orange-dk); text-align: center; padding-bottom: 1cqw; margin-bottom: 2cqw; border-bottom: 2px solid rgba(232,132,60,0.22); }
+/* 순위 새로고침 버튼(친구 참여 확인하기) — 스킨·일반 공용 px */
+.rank-refresh-wrap { text-align: center; margin-top: 8px; }
+.rank-refresh-btn { font-size: 12.5px; font-weight: 700; color: #993C1D; background: #fff;
+  border: 1.5px solid #E8843C; border-radius: 999px; padding: 6px 15px; cursor: pointer; line-height: 1; }
+.rank-refresh-btn:disabled { opacity: .55; cursor: default; }
+.rank-refresh-meta { font-size: 10.5px; color: #8a8a86; margin-top: 4px; line-height: 1.45; }
+
 .br-rank-list { display: flex; flex-direction: column; gap: 3.6cqw; max-height: 30cqw; overflow-y: auto; overscroll-behavior: contain; }
 .br-rank-list::-webkit-scrollbar { width: 3px; }
 .br-rank-list::-webkit-scrollbar-thumb { background: rgba(232,132,60,0.4); border-radius: 3px; }

@@ -304,26 +304,45 @@ function confirmModal(message, okLabel, onOk) {
 }
 
 const RESULT_ROUTES = ['a-result', 'b-result'];
-let boardPoll = null; // 순위판 자동 업데이트용 폴링 타이머
+let lastBoardCheck = 0; // 마지막 순위판 조회 시각
+function boardCheckedText() {
+  if (!lastBoardCheck) return '';
+  const d = new Date(lastBoardCheck);
+  return `마지막 확인 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+// 순위 섹션 공용: "친구 참여 확인하기" 버튼 + 안내 + 마지막 확인시간
+function refreshBlock() {
+  return `<div class="rank-refresh-wrap">
+    <button id="rankRefreshBtn" class="rank-refresh-btn" type="button">🔄 친구 참여 확인하기</button>
+    <div class="rank-refresh-meta">친구가 토핑을 넣었다면 눌러서 확인해보세요.${lastBoardCheck ? ` · ${boardCheckedText()}` : ''}</div>
+  </div>`;
+}
+// 새로고침: 조회 중 버튼 비활성화(연속클릭 방지) → 완료 시 재렌더(최신 순위+확인시간)
+function refreshBoard(ownerId) {
+  const btn = document.getElementById('rankRefreshBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '확인 중…'; }
+  syncBoard(ownerId, () => {
+    lastBoardCheck = Date.now();
+    const r = parseHash().route;
+    if (r === 'a-result' || r === 'b-result' || r === 'a-board') router();
+    else if (btn) { btn.disabled = false; btn.textContent = '🔄 친구 참여 확인하기'; }
+  });
+}
+window.refreshBoard = refreshBoard;
 function router() {
   const { route, params } = parseHash();
   const render = ROUTES[route] || renderNotFound;
   const app = document.getElementById('app');
   if (bRoulette) { clearInterval(bRoulette); bRoulette = null; } // 토핑 룰렛 정리
   app.innerHTML = '';
+  if (RESULT_ROUTES.includes(route) || route === 'a-board') lastBoardCheck = Date.now(); // 진입=1회 조회 기준시각
   render(app, params);
   // 진입점·전환·결과창은 뒤로가기 숨김. 결과창엔 다시하기(↻) 표시
   const noBack = route === 'a-start' || route === 'b-start' || route === 'b-loading' || RESULT_ROUTES.includes(route);
   ensureBackBtn().style.display = noBack ? 'none' : 'flex';
   ensureRedoBtn().style.display = (route === 'b-result') ? 'flex' : 'none'; // a-result는 새로고침 오해 소지로 숨김
   if (route !== 'a-quiz') logStep(route, params.ownerId, route[0] === 'b' ? params.bnick : session.nick); // 화면 도달(퀴즈는 문항별로 renderQuizStep에서)
-  // 순위판·결과창에서만 원격 참여를 주기적으로 재조회(자동 업데이트). 다른 화면 진입 시 정리.
-  if (boardPoll) { clearInterval(boardPoll); boardPoll = null; }
-  if ((RESULT_ROUTES.includes(route) || route === 'a-board') && params.ownerId) {
-    boardPoll = setInterval(() => {
-      syncBoard(params.ownerId, ch => { if (ch && parseHash().route === route) router(); });
-    }, 2000); // ponytail: 2s 폴링. Apps Script 응답(1~2s)과 비슷해 요청이 겹칠 수 있음(기능엔 무방). 대량 노출 시 부하↑ → 정규화 때 실시간DB 검토
-  }
+  // 순위판 조회 = 진입 시 1회(각 render에서 syncBoard) + 새로고침 버튼 + 탭 복귀. 폴링 없음(바이럴 부하 방지).
   window.scrollTo(0, 0);
   console.log('[router]', route, params);
 }
@@ -651,6 +670,7 @@ function renderAResult(app, p) {
         <div class="ex-blend">
           <div class="ex-title">🏆 친구와의 토핑 궁합</div>
           ${blendBox}
+          ${refreshBlock()}
         </div>
         <button class="btn btn-primary ex-share" id="shareBtn">🔗 친구에게 토핑 부탁하기</button>
         <div class="ex-cafe">
@@ -664,6 +684,7 @@ function renderAResult(app, p) {
       </div>
     </div>`;
 
+  app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#shareBtn').addEventListener('click', () => {
     flagClick('result', '공유클릭', ownerId);
     const url = shareUrlForB(ownerId, baseDrink);
@@ -872,6 +893,7 @@ function renderBResult(app, p) {
           <div class="br-rank-title">🏆 ${aNick}님의 가을 음료 궁합 순위</div>
           <div class="br-rank-list">${rankRows}</div>
           <div class="br-myrank">나는 전체 <b>${total}</b>명 중 <b>${myRank}위</b>!</div>
+          ${refreshBlock()}
         </div>
         <div class="br-capture">📸 결과를 캡쳐해서 친구에게 공유해 보세요!</div>
         <button class="btn btn-primary br-cta1" id="bRedoBtn">🍁 나도 가을 취향 테스트하기</button>
@@ -880,6 +902,7 @@ function renderBResult(app, p) {
       </div>
     </div>`;
 
+  app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, orderQuery, r.blendName); });
   app.querySelector('#bRedoBtn').addEventListener('click', () => { flagClick('join', '나도테스트클릭', ownerId); session.entry = 'from_friend'; location.hash = 'a-start'; });
 
@@ -990,6 +1013,7 @@ function renderABoard(app, p) {
         <h1 class="headline title-font" style="font-size:23px;margin-top:14px">${aNick}님의 ${d.name}에<br/>친구들이 담아준 토핑</h1>
         <div class="muted" style="font-size:13.5px;margin-top:2px">궁합이 높은 순서로 보여줘요</div>
       </div>
+      ${refreshBlock()}
       <div class="board-list">${rows || `
         ${['🥇', '🥈', '🥉'].map(m => `<div class="board-row is-skeleton" aria-hidden="true"><div class="board-rank">${m}</div><div class="board-chip">🍯</div><div class="board-info"><div class="board-nick">친구</div><div class="board-blend">토핑 블렌딩</div></div><div class="board-score">?<span>%</span></div></div>`).join('')}
         <div class="board-empty">아직 참여한 친구가 없어요.<br/>링크를 공유하면 위처럼 순위가 채워져요!</div>`}</div>
@@ -1000,6 +1024,7 @@ function renderABoard(app, p) {
       </div>
     </div>`;
 
+  app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#boardShareBtn').addEventListener('click', () => {
     const url = shareUrlForB(ownerId, baseDrink);
     shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해줘!\n${url}`);
