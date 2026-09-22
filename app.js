@@ -725,7 +725,7 @@ function renderAResult(app, p) {
     confirmModal(msg, '다시 하기', reset);
   });
 
-  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }, () => noticeModal(BOARD_ERR_MSG)); // 원격 합산(실패 시 안내)
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-result') router(); }); // 진입 자동조회: 실패해도 조용히(로컬 순위 표시). 팝업은 버튼에서만
 }
 
 // 인라인블록 텍스트가 부모 폭을 넘으면 minPx까지 폰트 축소 (nowrap 1줄 보장)
@@ -872,7 +872,7 @@ function renderBResult(app, p) {
     addToBoard(ownerId, entry);
     postParticipation(ownerId, entry); // 원격(다른 기기 합산)에도 기록
   }
-  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'b-result') router(); }, () => noticeModal(BOARD_ERR_MSG)); // 원격 합산(실패 시 안내)
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'b-result') router(); }); // 진입 자동조회: 실패해도 조용히. 팝업은 버튼에서만
 
   const low = r.score <= 50; // 0~50% → 당황 다람쥐 스킨
   const skin = low ? 'scenario-b-result-skin-10-50-blank-v7' : 'scenario-b-result-skin-blank-v7';
@@ -1011,7 +1011,7 @@ function renderABoard(app, p) {
   const d = DRINKS[baseDrink];
   if (!ownerId || !d) { stub(app, '순위판 없음', '공유 링크 정보가 없어요.'); return; }
   const aNick = ownerNickFromId(ownerId);
-  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-board') router(); }, () => noticeModal(BOARD_ERR_MSG)); // 진입 즉시 원격 반영(실패 시 안내)
+  syncBoard(ownerId, changed => { if (changed && parseHash().route === 'a-board') router(); }); // 진입 자동조회: 실패해도 조용히. 팝업은 버튼에서만
   const list = getBoard(ownerId).slice().sort((a, b) => b.score - a.score);
 
   const rows = list.map((e, i) => {
