@@ -344,12 +344,13 @@ let lastBoardCheck = 0; // 마지막 순위판 조회 시각
 function boardCheckedText() {
   if (!lastBoardCheck) return '';
   const d = new Date(lastBoardCheck);
-  return `마지막 확인 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `마지막 업데이트 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 // 순위 새로고침. 'full'(a-board, 여유)=안내문장+확인시간 / 'skin'(a-result, 빠듯)=버튼만.
 function refreshBlock(mode) {
-  var meta = '';
-  if (mode === 'full') meta = `친구가 토핑을 넣었다면 눌러서 확인해보세요.${lastBoardCheck ? ` · ${boardCheckedText()}` : ''}`;
+  var hint = (mode === 'full') ? '친구가 토핑을 넣었다면 눌러서 확인해보세요.' : '';
+  var time = lastBoardCheck ? boardCheckedText() : '';
+  var meta = [hint, time].filter(Boolean).join(' · '); // a결과판(skin)도 최신 시간 표시
   return `<div class="rank-refresh-wrap">
     <button id="rankRefreshBtn" class="rank-refresh-btn" type="button">🔄 친구 참여 확인하기</button>
     ${meta ? `<div class="rank-refresh-meta">${meta}</div>` : ''}
