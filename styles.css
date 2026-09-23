@@ -835,9 +835,26 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .ex-cafe-m { font-size: 2.85cqw; color: #8A7159; }
 /* 버튼 (박스 사이/아래) · 진한 브라운으로 이모지 가독성 */
 .result-ext2 .btn { left: 10%; width: 80%; transform: translateY(-50%); }
+/* b-start·b-result 상단 '순위판 보기' 복귀 버튼 (실수 진입·이탈 시 내 결과판으로) */
+.rank-back {
+  position: absolute; top: 12px; left: 12px; z-index: 6;
+  background: rgba(255,253,248,0.92); color: var(--orange-dk);
+  border: 1px solid rgba(153,60,29,0.25); border-radius: var(--pill);
+  font-family: 'Pretendard', sans-serif; font-weight: 700; font-size: 13px;
+  padding: 7px 13px; box-shadow: var(--sh-soft); cursor: pointer;
+}
+.rank-back:active { transform: scale(0.96); }
 .ex-share { top: 40%; }
-.ex-order { top: 82.5%; }
+.ex-order { top: 82.5%; background:#fff; color:var(--orange); border:2px solid var(--orange); box-shadow: var(--sh-soft); }
 .ex-again { top: 90%; }
+/* 방문자 토핑 CTA만: 둥둥 떠오르는 플로팅(떠오를수록 그림자 깊어짐). transform은 애니가 점유 → 프레스는 밝기로 */
+@keyframes ctaFloat {
+  0%,100% { transform: translateY(0);    box-shadow: 0 6px 0 #A64A1C, 0 10px 14px rgba(74,52,33,0.25); }
+  50%     { transform: translateY(-6px); box-shadow: 0 9px 0 #A64A1C, 0 18px 22px rgba(74,52,33,0.22); }
+}
+.ex-share.btn-cta3d { top: 37%; animation: ctaFloat 1.9s ease-in-out infinite; } /* 3D+그림자+부양이 아래로 뻗어 카페 메모(53%)와 겹쳐 → 살짝 위로 */
+.ex-share.btn-cta3d:active { transform: translateY(2px); filter: brightness(0.95); animation: none; }
+@media (prefers-reduced-motion: reduce) { .ex-share.btn-cta3d { animation: none; } }
 .result-ext2 .btn-primary { background: #D3611D; }
 
 /* ---------- A 결과 · 저장용 카드 (크래프트 결) ---------- */

@@ -672,6 +672,8 @@ function renderAResult(app, p) {
   const d = DRINKS[baseDrink];
   if (!d) { navigate('a-start'); return; }
   const aNick = ownerNickFromId(ownerId);
+  // 본인(이 브라우저에서 A를 완주한 사람)인지 = 버튼 노출만 결정. 순위판은 늘 서버에서 로드되므로 구분 실패해도 결과판은 정상.
+  const isOwner = (LS.get('passorder_a_done') || {}).ownerId === ownerId;
 
   // 일러스트 스킨(result-skin-blank) 슬롯을 PIL로 실측한 좌표(%)에 텍스트를 얹음
   const TAG_X = [22.0, 40.7, 59.3, 78.0]; // v12 pill 중심 x% (정밀 실측)
@@ -711,26 +713,36 @@ function renderAResult(app, p) {
           ${blendBox}
           ${refreshBlock('skin')}
         </div>
-        <button class="btn btn-primary ex-share" id="shareBtn">🔗 친구에게 토핑 부탁하기</button>
+        <button class="btn ${isOwner ? 'btn-primary' : 'btn-cta3d'} ex-share" id="shareBtn">${isOwner ? '🔗 친구에게 토핑 부탁하기' : `🎡 나도 ${aNick}님 음료에 토핑 추가하기`}</button>
         <div class="ex-cafe">
           <div class="ex-cafe-title">이 음료 파는 대표 카페</div>
           <div class="ex-cafe-list">
             ${d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="ex-cafe-row"><span class="ex-cafe-b">${b}</span><span class="ex-cafe-m">${m}</span></div>`; }).join('')}
           </div>
         </div>
-        <button class="btn btn-primary ex-order" id="aOrderBtn">🛒 ${d.name} 주문하기</button>
-        <button class="btn btn-ghost ex-again" id="aAgainBtn">🔄 다시 하기</button>
+        <button class="btn ex-order" id="aOrderBtn">🛒 ${d.name} 주문하기</button>
+        ${isOwner ? '<button class="btn btn-ghost ex-again" id="aAgainBtn">🔄 다시 하기</button>' : ''}
       </div>
     </div>`;
 
   app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#shareBtn').addEventListener('click', () => {
-    flagClick('result', '공유클릭', ownerId);
-    const url = shareUrlForB(ownerId, baseDrink);
-    shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해서 우리만의 커스텀 음료를 만들어보자!\n${url}`);
+    if (isOwner) { // 본인: 친구 초대(결과판 링크 공유)
+      flagClick('result', '공유클릭', ownerId);
+      const url = shareUrlForResult(ownerId, baseDrink);
+      shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해서 우리만의 커스텀 음료를 만들어보자!\n${url}`);
+    } else {       // 친구/방문자: 토핑 참여(룰렛으로)
+      const go = () => { flagClick('result', '토핑추가클릭', ownerId); navigate('b-start', { ownerId, baseDrink }); };
+      if (LS.get(participatedKey(ownerId))) { // 이미 참여 → 다시 뽑으면 이전 토핑 결과가 새 결과로 리셋됨을 경고
+        confirmModal('이미 토핑을 추가했어요.\n다시 뽑으면 이전 토핑 결과가\n새 결과로 바뀌어요. 계속할까요?', '다시 뽑기', () => {
+          LS.remove(participatedKey(ownerId)); // 재참여 허용(안 지우면 b-start가 b-result로 되돌림)
+          go();
+        });
+      } else { go(); }
+    }
   });
   app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(d.name, aNick, d.name); });
-  app.querySelector('#aAgainBtn').addEventListener('click', () => {
+  app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
     const reset = () => {
       flagClick('result', '다시하기클릭', ownerId);
       LS.remove('passorder_a_done');          // 결과 유지 해제 → 시작 화면부터
@@ -757,11 +769,11 @@ function fitOneLine(el, maxPx, minPx) {
   while (el.scrollWidth > parentW && size > minPx) { size -= 0.5; el.style.fontSize = size + 'px'; }
 }
 
-// B 초대 링크: 절대 URL (#b-start?ownerId=..&baseDrink=..)
-// 공유·초대 링크는 패스링크로 (해시·쿼리 보존 확인됨 → b-start/a-board 정상 진입)
+// 공유 링크: A 결과판(#a-result)으로 진입 → 본인은 자기 결과 재확인(앱 재진입 불가 대응),
+// 친구는 A 순위판 + "나도 토핑 추가하기" CTA를 봄. 순위판은 ownerId로 서버에서 로드(브라우저 무관).
 const SHARE_BASE = 'https://passorder.kr/fall-drinks';
-function shareUrlForB(ownerId, baseDrink) {
-  return `${SHARE_BASE}#b-start?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
+function shareUrlForResult(ownerId, baseDrink) {
+  return `${SHARE_BASE}#a-result?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
 }
 // 순위판(a-board) 공유 URL
 function shareUrlForBoard(ownerId, baseDrink) {
@@ -791,6 +803,7 @@ function renderBStart(app, p) {
   app.innerHTML = `
     <div class="bgame">
       <img class="bgame-bg" src="${assetURL('assets/game/stage-9x16.png')}" alt="" onerror="this.remove()" />
+      <button class="rank-back" id="rankBackBtn" type="button">‹ 순위판 보기</button>
       <div class="bg-head">
         <div class="bg-badge">🎁 초대장이 도착했어요</div>
         <div class="bg-title">${aNick}님의 <b>${d.name}</b>에<br/>어울리는 토핑을 뽑아주세요!</div>
@@ -813,6 +826,11 @@ function renderBStart(app, p) {
   const spin = () => { idx = (idx + 1) % pool.length; el.src = assetURL(`assets/toppings/${pool[idx]}.png`); };
   el.src = assetURL(`assets/toppings/${pool[idx]}.png`);
   bRoulette = setInterval(spin, 420); // 미리보기(느린 회전)
+
+  app.querySelector('#rankBackBtn').addEventListener('click', () => {
+    if (bRoulette) { clearInterval(bRoulette); bRoulette = null; } // 룰렛 정지 후 복귀
+    navigate('a-result', { ownerId, baseDrink });
+  });
 
   const input = app.querySelector('#bnick');
   const startBtn = app.querySelector('#startBtn');
@@ -920,6 +938,7 @@ function renderBResult(app, p) {
 
   app.innerHTML = `
     <div class="bresult2">
+      <button class="rank-back" id="rankBackBtn" type="button">‹ 순위판 보기</button>
       <div class="br-card">
         <img class="skin-bg" src="${assetURL(`assets/result-skins/${skin}.png`)}" alt="" />
         <div class="br-grade">${r.grade.emoji} ${r.grade.label}</div>
@@ -945,6 +964,7 @@ function renderBResult(app, p) {
       </div>
     </div>`;
 
+  app.querySelector('#rankBackBtn').addEventListener('click', () => navigate('a-result', { ownerId, baseDrink }));
   app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, orderQuery, r.blendName); });
   app.querySelector('#bRedoBtn').addEventListener('click', () => { flagClick('join', '나도테스트클릭', ownerId); session.entry = 'from_friend'; location.hash = 'a-start'; });
 
@@ -1074,7 +1094,7 @@ function renderABoard(app, p) {
 
   app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#boardShareBtn').addEventListener('click', () => {
-    const url = shareUrlForB(ownerId, baseDrink);
+    const url = shareUrlForResult(ownerId, baseDrink);
     shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해줘!\n${url}`);
   });
 }
