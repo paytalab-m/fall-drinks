@@ -395,8 +395,11 @@ function router() {
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', () => {
   session.entry = new URLSearchParams(location.search).get('utm_source') || 'direct'; // 진입 채널
-  // 앱푸시 URL에 실린 유저 식별자(?userIdentifier=..) → 시트 기록용. 해시이동/재진입에도 유지(localStorage 보존).
-  session.uid = new URLSearchParams(location.search).get('userIdentifier') || LS.get('passorder_uid') || '';
+  // 앱푸시 URL에 실린 유저 식별자(?uid=.. 또는 userIdentifier=..) → 시트 기록용. 해시이동/재진입에도 유지(localStorage 보존).
+  // 중첩 URL(events/webview?address=...&uid=..)로 위치가 틀어져도 잡히게 href 전체를 정규식 안전망으로도 훑음.
+  const _sp = new URLSearchParams(location.search);
+  const _m = location.href.match(/[?&#](?:uid|userIdentifier)=([^&#]+)/);
+  session.uid = _sp.get('uid') || _sp.get('userIdentifier') || (_m ? decodeURIComponent(_m[1]) : '') || LS.get('passorder_uid') || '';
   if (session.uid) LS.set('passorder_uid', session.uid);
   ['assets/loading/1.png','assets/loading/2.png','assets/loading/3.png'].forEach(preloadImg); // 로더 프레임 미리로드(깜빡임 방지)
   // A 완주자 재방문: 시작/루트로 들어오면 다시하기 전까지 결과 페이지로. (b-* 공유링크·기존 딥링크는 그대로 둠)
