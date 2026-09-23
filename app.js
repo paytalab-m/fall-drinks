@@ -395,6 +395,9 @@ function router() {
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', () => {
   session.entry = new URLSearchParams(location.search).get('utm_source') || 'direct'; // 진입 채널
+  // 앱푸시 URL에 실린 유저 식별자(?userIdentifier=..) → 시트 기록용. 해시이동/재진입에도 유지(localStorage 보존).
+  session.uid = new URLSearchParams(location.search).get('userIdentifier') || LS.get('passorder_uid') || '';
+  if (session.uid) LS.set('passorder_uid', session.uid);
   ['assets/loading/1.png','assets/loading/2.png','assets/loading/3.png'].forEach(preloadImg); // 로더 프레임 미리로드(깜빡임 방지)
   // A 완주자 재방문: 시작/루트로 들어오면 다시하기 전까지 결과 페이지로. (b-* 공유링크·기존 딥링크는 그대로 둠)
   const aDone = LS.get('passorder_a_done');
@@ -473,12 +476,12 @@ function sheetPost_(obj) {
 function postResult(ownerId, baseDrink) {
   const d = DRINKS[baseDrink];
   sheetPost_({ type: 'result', owner_id: ownerId, nick: session.nick, vid: getVid(),
-    entry: session.entry || 'direct', drink_id: baseDrink, drink_name: d ? d.name : '' });
+    entry: session.entry || 'direct', user_identifier: session.uid || '', drink_id: baseDrink, drink_name: d ? d.name : '' });
 }
 // 화면 도달 로그(퍼널·이탈). role은 단계 접두사로 판별. nick = 행동한 사람(A/친구) 닉
 function logStep(step, ownerId, nick) {
   sheetPost_({ type: 'step', vid: getVid(), role: (step && step[0] === 'b') ? 'B' : 'A',
-    owner_id: ownerId || '', nick: nick || session.nick || '', step: step });
+    owner_id: ownerId || '', nick: nick || session.nick || '', step: step, user_identifier: session.uid || '' });
 }
 // 버튼 플래그 (tab='result'|'join')
 function flagClick(tab, field, ownerId) {
