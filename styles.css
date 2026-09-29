@@ -903,6 +903,17 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
   padding: 7px 13px; box-shadow: var(--sh-soft); cursor: pointer;
 }
 .rank-back:active { transform: scale(0.96); }
+/* 강조형: 공유 링크 재방문 시 A가 자기 결과판으로 가는 주 통로 */
+.rank-back-strong {
+  background: var(--orange); color: #fff; border: none;
+  font-size: 13.5px; font-weight: 800; padding: 9px 15px;
+  box-shadow: 0 3px 0 #A64A1C, 0 5px 12px rgba(74,52,33,0.28);
+  text-shadow: 0 1px 2px rgba(120,50,20,0.35);
+  animation: rankBackPulse 1.8s ease-in-out infinite;
+}
+.rank-back-strong:active { transform: translateY(2px); box-shadow: 0 1px 0 #A64A1C, 0 3px 8px rgba(74,52,33,0.25); animation: none; }
+@keyframes rankBackPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .rank-back-strong { animation: none; } }
 .ex-share { top: 40%; }
 .ex-order { top: 82.5%; background:#fff; color:var(--orange); border:2px solid var(--orange); box-shadow: var(--sh-soft); }
 .ex-again { top: 90%; }

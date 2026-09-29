@@ -831,7 +831,7 @@ function renderAResult(app, p) {
     if (isOwner) { // 본인: 친구 초대(결과판 링크 공유)
       flagClick('result', '공유클릭', ownerId);
       const url = shareUrlForResult(ownerId, baseDrink);
-      shareContent(`제 가을 음료 결과가 나왔어요! 🍁\n여기 어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 골라주실래요?\n${url}`);
+      shareContent(`🍁 ${aNick}님의 가을 음료 취향 결과예요!\n어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 단, 3초면 완료!\n${url}`);
     } else { participate(); }
   });
   app.querySelector('#inviteCta')?.addEventListener('click', participate);
@@ -867,7 +867,8 @@ function fitOneLine(el, maxPx, minPx) {
 // 친구는 A 순위판 + "나도 토핑 추가하기" CTA를 봄. 순위판은 ownerId로 서버에서 로드(브라우저 무관).
 const SHARE_BASE = 'https://passorder.kr/fall-drinks';
 function shareUrlForResult(ownerId, baseDrink) {
-  return `${SHARE_BASE}#a-result?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
+  // 공유 링크 착지 = b-start(토핑 뽑기). 본인(A)은 상단 '순위판 보기'로 결과 재열람.
+  return `${SHARE_BASE}#b-start?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
 }
 // 순위판(a-board) 공유 URL
 function shareUrlForBoard(ownerId, baseDrink) {
@@ -898,9 +899,8 @@ function renderBStart(app, p) {
   app.innerHTML = `
     <div class="bgame">
       <img class="bgame-bg" src="${assetURL('assets/game/stage-9x16.png')}" alt="" onerror="this.remove()" />
-      <button class="rank-back" id="rankBackBtn" type="button">‹ 순위판 보기</button>
+      <button class="rank-back rank-back-strong" id="rankBackBtn" type="button">‹ ${aNick}님의 순위판 보기</button>
       <div class="bg-head">
-        <div class="bg-badge">🎁 초대장이 도착했어요</div>
         <div class="bg-title">${aNick}님의 <b>${d.name}</b>에<br/>어울리는 토핑을 뽑아주세요!</div>
       </div>
       <div class="bg-stage">
@@ -1190,7 +1190,7 @@ function renderABoard(app, p) {
   app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#boardShareBtn').addEventListener('click', () => {
     const url = shareUrlForResult(ownerId, baseDrink);
-    shareContent(`제 가을 음료 결과가 나왔어요! 🍁\n여기 어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 골라주실래요?\n${url}`);
+    shareContent(`🍁 ${aNick}님의 가을 음료 취향 결과예요!\n어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 단, 3초면 완료!\n${url}`);
   });
 }
 
