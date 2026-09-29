@@ -708,7 +708,7 @@ function finishQuiz() {
 
   // 결과 화면 이미지 미리로드(로딩 1.6s 동안) → 결과 도달 시 즉시 표시
   preloadImg(`assets/drinks/${baseDrink}.png`);
-  preloadImg('assets/result-skins/result-skin-blank-v15-topping-cards-adjusted.png');
+  preloadImg('assets/result-skins/result-skin-blank-v20-large-cards-adjusted.png');
 
   // 로딩 화면 → 결과
   const app = document.getElementById('app');
@@ -985,7 +985,7 @@ function renderBLoading(app, p) {
   if (!ownerId || !baseDrink || !topping) { navigate('b-start', p); return; }
   // b결과 이미지 미리로드(로딩 1.5s 동안) → 결과 즉시 표시
   preloadImg(`assets/blends/${baseDrink}_${topping}.png`);
-  preloadImg(`assets/combos/${baseDrink}_${topping}.png`);
+  if (COMBO_MENUS[`${baseDrink}+${topping}`]) preloadImg(`assets/combos/${baseDrink}_${topping}.png`); // 실메뉴 조합만(없는 combo 404 방지)
   preloadImg('assets/result-skins/scenario-b-result-skin-blank-v7.png');
   preloadImg('assets/result-skins/scenario-b-result-skin-10-50-blank-v7.png');
   preloadImg('assets/result-skins/scenario-b-result-extension-blank-v8.png');
