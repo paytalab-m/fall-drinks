@@ -760,6 +760,11 @@ function renderAResult(app, p) {
 
   app.innerHTML = `
     <div class="page rpage">
+      ${!isOwner ? `
+      <div class="friend-invite">
+        <div class="friend-invite-txt">🎁 <b>${aNick}</b>님이 토핑을 부탁했어요!</div>
+        <button class="friend-invite-cta" id="inviteCta">${aNick}님 음료에 토핑 골라주기</button>
+      </div>` : ''}
       <div class="result-full">
         <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v15-topping-cards-adjusted.png')}" alt="" />
 
@@ -812,21 +817,24 @@ function renderAResult(app, p) {
 
   app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#rankViewBtn').addEventListener('click', () => { location.hash = 'a-board?ownerId=' + encodeURIComponent(ownerId) + '&baseDrink=' + baseDrink; });
+  // 친구/방문자: 토핑 참여(룰렛으로) — 상단 초대 배너·하단 CTA 공통
+  const participate = () => {
+    const go = () => { flagClick('result', '토핑추가클릭', ownerId); navigate('b-start', { ownerId, baseDrink }); };
+    if (LS.get(participatedKey(ownerId))) { // 이미 참여 → 다시 뽑으면 이전 토핑 결과가 새 결과로 리셋됨을 경고
+      confirmModal('이미 토핑을 추가했어요.\n다시 뽑으면 이전 토핑 결과가\n새 결과로 바뀌어요. 계속할까요?', '다시 뽑기', () => {
+        LS.remove(participatedKey(ownerId)); // 재참여 허용(안 지우면 b-start가 b-result로 되돌림)
+        go();
+      });
+    } else { go(); }
+  };
   app.querySelector('#shareBtn').addEventListener('click', () => {
     if (isOwner) { // 본인: 친구 초대(결과판 링크 공유)
       flagClick('result', '공유클릭', ownerId);
       const url = shareUrlForResult(ownerId, baseDrink);
       shareContent(`제 가을 음료 결과가 나왔어요! 🍁\n여기 어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 골라주실래요?\n${url}`);
-    } else {       // 친구/방문자: 토핑 참여(룰렛으로)
-      const go = () => { flagClick('result', '토핑추가클릭', ownerId); navigate('b-start', { ownerId, baseDrink }); };
-      if (LS.get(participatedKey(ownerId))) { // 이미 참여 → 다시 뽑으면 이전 토핑 결과가 새 결과로 리셋됨을 경고
-        confirmModal('이미 토핑을 추가했어요.\n다시 뽑으면 이전 토핑 결과가\n새 결과로 바뀌어요. 계속할까요?', '다시 뽑기', () => {
-          LS.remove(participatedKey(ownerId)); // 재참여 허용(안 지우면 b-start가 b-result로 되돌림)
-          go();
-        });
-      } else { go(); }
-    }
+    } else { participate(); }
   });
+  app.querySelector('#inviteCta')?.addEventListener('click', participate);
   app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(drinkKeyword(d.name), aNick, d.name); });
   app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
     const reset = () => {
