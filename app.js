@@ -82,15 +82,23 @@ function assetURL(p) {
   return IMG_BASE ? IMG_BASE + webp : webp;                      // 로컬도 webp로 서빙
 }
 function blendImg(baseId, toppingId) { return assetURL(`assets/blends/${baseId}_${toppingId}.png`); }
-// 결과 음료의 토핑 궁합 최상/최악 (BLENDS 풀에서 scoreOf 최대/최소)
+// 최고: 실제 최고점(대부분 100% 판매 메뉴). 마인스트림 토핑 전체에서 최대 — 블렌드 이미지 유무와 무관.
+// 최악: 괴식(김치·대파·고수) 중 최저점(블렌드 이미지 보유 풀에서).
+const BEST_CANDS = ['cream', 'honey', 'chestnut', 'cinnamon', 'shot', 'yuzu']; // 동점 시 앞 순서 우선(결정적)
 function bestWorstTopping(baseId) {
   const pool = (BLENDS[baseId] || []).slice();
   if (!pool.length) return null;
+  const bestScored = BEST_CANDS.map(t => ({ t, s: scoreOf(baseId, t) })).sort((a, b) => b.s - a.s);
   const scored = pool.map(t => ({ t, s: scoreOf(baseId, t) })).sort((a, b) => b.s - a.s);
-  // worst = 진짜 최악(괴식: 김치·대파·고수) 중 최저점. 평범한 토핑(유자·샷)이 최악으로 잡히는 것 방지.
   const gross = scored.filter(x => GROSS.includes(x.t));
   const pick = gross.length ? gross : scored;
-  return { best: scored[0], worst: pick[pick.length - 1] };
+  return { best: bestScored[0], worst: pick[pick.length - 1] };
+}
+// 궁합 카드 이미지: 100% 실메뉴 조합은 combos, 그 외는 blends
+function comboOrBlendImg(baseId, toppingId) {
+  return COMBO_MENUS[`${baseId}+${toppingId}`]
+    ? assetURL(`assets/combos/${baseId}_${toppingId}.png`)
+    : blendImg(baseId, toppingId);
 }
 // 이미지 미리 받아 캐시에 올려둠(깜빡임·지연 로딩 방지)
 function preloadImg(p) { try { new Image().src = assetURL(p); } catch {} }
@@ -759,10 +767,17 @@ function renderAResult(app, p) {
   const bestB = bw ? blend(baseDrink, bw.best.t) : null;
   const worstB = bw ? blend(baseDrink, bw.worst.t) : null;
 
+  // 토핑 풀(친구가 고를 수 있는 토핑) → 개수·롤링 이미지
+  const pool = (BLENDS[baseDrink] && BLENDS[baseDrink].length) ? BLENDS[baseDrink] : TOPPINGS.map(t => t.id);
+  const nTop = pool.length;
+  const marqueeImgs = pool.map(id => `<img src="${assetURL('assets/toppings/' + id + '.png')}" alt="" onerror="this.style.display='none'"/>`).join('');
+  const cafeRows = d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rv2-cafe-row"><span class="rv2-cafe-b">${b}</span><span class="rv2-cafe-m">${m}</span></div>`; }).join('');
+
   app.innerHTML = `
     <div class="page rpage">
+      ${p.owner === '1' ? '<button class="rank-back rank-back-strong rf-toback" id="toBStartBtn" type="button">‹ 토핑 뽑으러 가기</button>' : ''}
       <div class="result-full">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v15-topping-cards-adjusted.png')}" alt="" />
+        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v17-cards-down-20.png')}" alt="" />
 
         <!-- 메인 결과 카드 -->
         <div class="rf-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
@@ -773,10 +788,13 @@ function renderAResult(app, p) {
         ${tags}
         <div class="rf-why">${d.why}</div>
 
+        <!-- 2열 궁합 카드 위 카피 -->
+        <div class="rf-copy1">${d.name}에 다양한 토핑을 조합해 볼 수 있어요!</div>
+
         <!-- 최고 / 최악 토핑 궁합 카드 -->
         <div class="rf-card rf-card-l">
           <div class="rf-card-title">💚 최고의 궁합</div>
-          <div class="rf-card-img">${bestB ? `<img src="${blendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
+          <div class="rf-card-img">${bestB ? `<img src="${comboOrBlendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
           <div class="rf-card-name">${bestB ? bestB.blendName : '-'}</div>
           <div class="rf-card-score" style="color:var(--orange)">${bestB ? bestB.score + '%' : ''}</div>
         </div>
@@ -787,8 +805,11 @@ function renderAResult(app, p) {
           <div class="rf-card-score" style="color:var(--maple)">${worstB ? worstB.score + '%' : ''}</div>
         </div>
 
+        <!-- 친구 토핑 선택 안내 + 토핑 롤링 -->
+        <div class="rf-friend">친구가 <b>${nTop}가지 토핑</b> 중 하나를 골라주면<br/>우리 취향 궁합 점수가 완성돼요!</div>
+        <div class="rf-marquee"><div class="rf-marquee-track">${marqueeImgs}${marqueeImgs}</div></div>
+
         <!-- 토핑 요청(공유) 버튼 -->
-        ${isOwner ? '<div class="rf-share-hint">친구가 토핑을 골라주면 우리 궁합이 완성돼요!</div>' : ''}
         <button class="rf-share btn btn-cta3d" id="shareBtn">${isOwner ? '🔗 친구에게 토핑 받기' : `🎡 나도 ${aNick}님 음료에 토핑 추가하기`}</button>
 
         <!-- 친구와의 토핑 궁합 순위 -->
@@ -812,6 +833,7 @@ function renderAResult(app, p) {
     </div>`;
 
   app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
+  app.querySelector('#toBStartBtn')?.addEventListener('click', () => navigate('b-start', { ownerId, baseDrink })); // 토핑 뽑기로 복귀
   app.querySelector('#rankViewBtn').addEventListener('click', () => { location.hash = 'a-board?ownerId=' + encodeURIComponent(ownerId) + '&baseDrink=' + baseDrink; });
   // 친구/방문자: 토핑 참여(룰렛으로) — 상단 초대 배너·하단 CTA 공통
   const participate = () => {
