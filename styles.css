@@ -1092,20 +1092,6 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .br-orderhint { position: absolute; top: 60.5%; left: 8%; width: 84%; text-align: center; font-size: 3.4cqw; font-weight: 700; color: var(--maple); }
 .br-cta2 { top: 66.5%; background: var(--card); color: var(--ink); box-shadow: var(--sh-soft); }
 
-/* 친구(공유링크 방문자) 상단 초대 배너 — 최상단 즉시 노출 CTA */
-.friend-invite {
-  background: var(--orange); color: #fff;
-  padding: 12px 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  box-shadow: 0 3px 12px rgba(74,52,33,0.28);
-}
-.friend-invite-txt { font-weight: 800; font-size: 14.5px; text-shadow: 0 1px 2px rgba(120,50,20,0.35); }
-.friend-invite-cta {
-  width: 100%; max-width: 320px; padding: 12px 18px; cursor: pointer;
-  background: #fff; color: var(--orange-dk); font-weight: 800; font-size: 15px;
-  border: none; border-radius: 999px; box-shadow: 0 3px 0 #A64A1C, 0 6px 12px rgba(74,52,33,0.2);
-}
-.friend-invite-cta:active { transform: translateY(2px); box-shadow: 0 1px 0 #A64A1C, 0 3px 8px rgba(74,52,33,0.2); }
-
 /* ============ v2 결과 페이지 (단일 배경 result-skin-blank-v14-topping-cards-full) ============ */
 .result-full { position: relative; width: 100%; container-type: inline-size; }
 .result-full .skin-bg { display: block; width: 100%; height: auto; }

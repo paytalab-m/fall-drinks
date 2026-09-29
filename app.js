@@ -760,11 +760,6 @@ function renderAResult(app, p) {
 
   app.innerHTML = `
     <div class="page rpage">
-      ${!isOwner ? `
-      <div class="friend-invite">
-        <div class="friend-invite-txt">🎁 <b>${aNick}</b>님이 토핑을 부탁했어요!</div>
-        <button class="friend-invite-cta" id="inviteCta">${aNick}님 음료에 토핑 골라주기</button>
-      </div>` : ''}
       <div class="result-full">
         <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v15-topping-cards-adjusted.png')}" alt="" />
 
@@ -834,7 +829,6 @@ function renderAResult(app, p) {
       shareContent(`🍁 ${aNick}님의 가을 음료 취향 결과예요!\n어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 단, 3초면 완료!\n${url}`);
     } else { participate(); }
   });
-  app.querySelector('#inviteCta')?.addEventListener('click', participate);
   app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(drinkKeyword(d.name), aNick, d.name); });
   app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
     const reset = () => {
