@@ -767,17 +767,16 @@ function renderAResult(app, p) {
   const bestB = bw ? blend(baseDrink, bw.best.t) : null;
   const worstB = bw ? blend(baseDrink, bw.worst.t) : null;
 
-  // 토핑 풀(친구가 고를 수 있는 토핑) → 개수·롤링 이미지
-  const pool = (BLENDS[baseDrink] && BLENDS[baseDrink].length) ? BLENDS[baseDrink] : TOPPINGS.map(t => t.id);
-  const nTop = pool.length;
-  const marqueeImgs = pool.map(id => `<img src="${assetURL('assets/toppings/' + id + '.png')}" alt="" onerror="this.style.display='none'"/>`).join('');
+  // 토핑 안내: 전체 토핑 종류(9종) 기준 표기 + 롤링 이미지
+  const nTop = TOPPINGS.length;
+  const marqueeImgs = TOPPINGS.map(t => `<img src="${assetURL('assets/toppings/' + t.id + '.png')}" alt="" onerror="this.style.display='none'"/>`).join('');
   const cafeRows = d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rv2-cafe-row"><span class="rv2-cafe-b">${b}</span><span class="rv2-cafe-m">${m}</span></div>`; }).join('');
 
   app.innerHTML = `
     <div class="page rpage">
       ${p.owner === '1' ? '<button class="rank-back rank-back-strong rf-toback" id="toBStartBtn" type="button">‹ 토핑 뽑으러 가기</button>' : ''}
       <div class="result-full">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v17-cards-down-20.png')}" alt="" />
+        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v18-spacing-810x4060.png')}" alt="" />
 
         <!-- 메인 결과 카드 -->
         <div class="rf-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
