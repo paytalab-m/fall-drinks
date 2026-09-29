@@ -642,53 +642,53 @@ function renderQuizStep(app) {
       <div class="options">
         ${opts.map((o, i) => `<button class="option" data-i="${i}">${o}</button>`).join('')}
       </div>
-      ${isLast ? `
-      <div class="q-nickwrap">
-        <div class="q-nickhint">마지막! 결과 페이지에 들어갈 닉네임을 알려주세요</div>
-        <div class="nick-row">
-          <input id="nick" class="input" type="text" maxlength="10" placeholder="닉네임" autocomplete="off" />
-          <button id="nickRandom" type="button" class="nick-rand">🎲 랜덤</button>
-        </div>
-        <button id="finishBtn" class="btn btn-cta3d">결과 확인하기</button>
-      </div>` : ''}
     </div>`;
 
   logStep('a-quiz-' + (s + 1), session.ownerId, session.nick); // 문항별 이탈 측정
 
   if (isLast) {
-    // 마지막 문항(Q7): 답 선택 + 닉네임 입력 후 '결과 확인하기'
-    // 버튼은 항상 활성 → 누르면 부족한 걸 안내(죽은 버튼 방지)
-    let picked = null;
-    const finishBtn = app.querySelector('#finishBtn');
-    const input = app.querySelector('#nick');
-    const optWrap = app.querySelector('.options');
+    // 마지막 문항(Q7): 답 선택 → 닉네임 입력 팝업
     app.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
       app.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-      picked = Number(btn.dataset.i);
-      quizState.answers[key] = picked;
-      clearOptErr(optWrap);
+      quizState.answers[key] = Number(btn.dataset.i);
+      nickModal(nick => { session.nick = nick; session.ownerId = getOrCreateOwnerId(nick); finishQuiz(); });
     }));
-    input.addEventListener('input', () => clearInputErr(input));
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') finishBtn.click(); });
-    app.querySelector('#nickRandom').addEventListener('click', () => {
-      input.value = randomNick();
-      clearInputErr(input);
-      input.focus();
-    });
-    finishBtn.addEventListener('click', () => {
-      if (picked === null) { flagOptions(optWrap, '답을 먼저 선택해주세요'); return; }
-      const nick = input.value.trim();
-      if (!nick) { flagInput(input, '닉네임을 입력해주세요'); return; }
-      session.nick = nick;
-      session.ownerId = getOrCreateOwnerId(nick);
-      finishQuiz();
-    });
   } else {
     app.querySelectorAll('.option').forEach(btn => {
       btn.addEventListener('click', () => onQuizAnswer(key, kind, Number(btn.dataset.i)));
     });
   }
+}
+
+// 닉네임 입력 팝업 (Q7 답 선택 후) — 하단에 있던 입력·랜덤·확인 버튼을 그대로 모달로
+function nickModal(onSubmit) {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px';
+  ov.innerHTML =
+    '<div class="nick-modal" style="background:#fff;border-radius:22px;max-width:340px;width:100%;padding:26px 22px 22px;box-shadow:0 14px 40px rgba(0,0,0,.28);text-align:center">' +
+      '<div style="font-family:\'Jalnan\',\'Pretendard\',sans-serif;font-size:19px;color:#2C2C2A;margin-bottom:4px">마지막! 🍁</div>' +
+      '<div style="font-size:14px;color:#8A7159;margin-bottom:16px">결과 페이지에 들어갈 닉네임을 알려주세요</div>' +
+      '<div class="nick-row" style="margin-bottom:12px">' +
+        '<input id="nmNick" class="input" type="text" maxlength="10" placeholder="닉네임" autocomplete="off" />' +
+        '<button id="nmRand" type="button" class="nick-rand">🎲 랜덤</button>' +
+      '</div>' +
+      '<button id="nmOk" class="btn btn-cta3d" style="width:100%">결과 확인하기</button>' +
+    '</div>';
+  document.body.appendChild(ov);
+  const input = ov.querySelector('#nmNick');
+  const okBtn = ov.querySelector('#nmOk');
+  setTimeout(() => input.focus(), 50);
+  input.addEventListener('input', () => clearInputErr(input));
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') okBtn.click(); });
+  ov.querySelector('#nmRand').addEventListener('click', () => { input.value = randomNick(); clearInputErr(input); input.focus(); });
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); }); // 배경 탭 = 닫기(답 다시 선택 가능)
+  okBtn.addEventListener('click', () => {
+    const nick = input.value.trim();
+    if (!nick) { flagInput(input, '닉네임을 입력해주세요'); return; }
+    ov.remove();
+    onSubmit(nick);
+  });
 }
 
 function onQuizAnswer(key, kind, idx) {
