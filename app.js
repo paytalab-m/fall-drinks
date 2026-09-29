@@ -59,9 +59,9 @@ const OLD_COL = { yuzu: 0, chestnut: 1, cream: 3, cinnamon: 4, honey: 6, shot: 8
 function scoreOf(baseId, toppingId) {
   const rowKey = MATRIX_KEY[baseId];
   if (toppingId in OLD_COL) return MATRIX[rowKey][OLD_COL[toppingId]];
-  // 괴식(김치·대파·고수): 낮은 점수(≤48) · 음료 group으로 결정적 변주 → 당황 다람쥐
-  const base = { kimchi: 6, greenonion: 16, cilantro: 26 }[toppingId] ?? 20;
-  return Math.min(48, base + (DRINKS[baseId].group * 5) % 18);
+  // 괴식(김치·대파·고수): 전부 20점 미만(💥 블렌딩 사고) · 음료 group으로 결정적 변주 → 당황 다람쥐
+  const base = { kimchi: 4, greenonion: 9, cilantro: 14 }[toppingId] ?? 12;
+  return base + (DRINKS[baseId].group % 3) * 2;
 }
 function blend(baseId, toppingId) {
   const score = scoreOf(baseId, toppingId);
@@ -75,13 +75,23 @@ function blend(baseId, toppingId) {
 // 블렌드 결과 이미지 (미리 제작한 조합 이미지)
 // 자산 경로 → 단독HTML이면 인라인 data URI, 멀티파일이면 원본 경로
 // (JS에서 동적으로 .src 대입하는 경우 빌드 정규식이 못 잡으므로 이걸로 감싼다)
-const IMG_BASE = 'https://cdn.jsdelivr.net/gh/paytalab-m/fall-drinks@main/'; // 이미지 CDN(webp). 비우면 로컬 원본(png)
+const IMG_BASE = 'https://cdn.jsdelivr.net/gh/paytalab-m/fall-drinks@main/'; // 이미지 CDN(webp). 개발 시 ''로 두면 로컬 webp 서빙
 function assetURL(p) {
   if (typeof A === 'function' && window.__A) return A(p);        // 단일파일 빌드(인라인 data URI)
-  if (!IMG_BASE) return p;                                        // 로컬 테스트(원본 png)
-  return IMG_BASE + p.replace(/^[./]+/, '').replace(/\.png(\?[^"']*)?$/i, '.webp');
+  const webp = p.replace(/^[./]+/, '').replace(/\.png(\?[^"']*)?$/i, '.webp');
+  return IMG_BASE ? IMG_BASE + webp : webp;                      // 로컬도 webp로 서빙
 }
 function blendImg(baseId, toppingId) { return assetURL(`assets/blends/${baseId}_${toppingId}.png`); }
+// 결과 음료의 토핑 궁합 최상/최악 (BLENDS 풀에서 scoreOf 최대/최소)
+function bestWorstTopping(baseId) {
+  const pool = (BLENDS[baseId] || []).slice();
+  if (!pool.length) return null;
+  const scored = pool.map(t => ({ t, s: scoreOf(baseId, t) })).sort((a, b) => b.s - a.s);
+  // worst = 진짜 최악(괴식: 김치·대파·고수) 중 최저점. 평범한 토핑(유자·샷)이 최악으로 잡히는 것 방지.
+  const gross = scored.filter(x => GROSS.includes(x.t));
+  const pick = gross.length ? gross : scored;
+  return { best: scored[0], worst: pick[pick.length - 1] };
+}
 // 이미지 미리 받아 캐시에 올려둠(깜빡임·지연 로딩 방지)
 function preloadImg(p) { try { new Image().src = assetURL(p); } catch {} }
 
@@ -134,6 +144,26 @@ function clearInputErr(input) {
   const err = input.parentElement.querySelector('.field-err');
   if (err) err.remove();
 }
+// 답 미선택 경고 (선택지 흔들림 + 안내문) · Q7
+function flagOptions(wrap, msg) {
+  if (!wrap) return;
+  wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake');
+  let err = wrap.parentElement.querySelector('.opt-err');
+  if (!err) { err = document.createElement('div'); err.className = 'opt-err field-err'; wrap.insertAdjacentElement('beforebegin', err); }
+  err.textContent = msg;
+  wrap.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function clearOptErr(wrap) {
+  if (!wrap) return;
+  const err = wrap.parentElement.querySelector('.opt-err');
+  if (err) err.remove();
+}
+// 원탭 랜덤 닉네임 (가을 테마 · ≤10자)
+function randomNick() {
+  const a = ['포근', '달콤', '고소', '상큼', '든든', '잔잔', '새콤', '묵직', '향긋', '따끈'];
+  const b = ['다람쥐', '단풍', '밤톨', '고구마', '대추', '도토리', '단호박', '홍시', '토피넛', '곡물'];
+  return a[Math.floor(Math.random() * a.length)] + b[Math.floor(Math.random() * b.length)];
+}
 
 // 음료 미디어 (이미지 → 없으면 이모지 폴백)
 function drinkMedia(drink) {
@@ -181,6 +211,10 @@ function toppingImg(t) {
 
 // 딥링크 (음료 검색) — 실제 앱링크: https://link.passorder.kr/search/home/list?open=true&sort=NEAREST&query=…
 // app_install_identifier는 뺐다 — 빈 값으로 넣으면 어트리뷰션이 진짜 install id를 안 채울 수 있어, 앱이 알아서 채우게 둠.
+// 주문 딥링크 검색어 = 원물만 (예: 밤라떼→밤, 고구마라떼→고구마, 흑임자라떼→흑임자)
+function drinkKeyword(name) {
+  return String(name || '').replace(/\s*(라떼|스무디|주스|에이드|차|티)$/,'').trim();
+}
 function orderDeepLink(query, nick, menu) {
   const params = new URLSearchParams({
     open: 'true',
@@ -352,7 +386,7 @@ function refreshBlock(mode) {
   var time = lastBoardCheck ? boardCheckedText() : '';
   var meta = [hint, time].filter(Boolean).join(' · '); // a결과판(skin)도 최신 시간 표시
   return `<div class="rank-refresh-wrap">
-    <button id="rankRefreshBtn" class="rank-refresh-btn" type="button">🔄 친구 참여 확인하기</button>
+    <button id="rankRefreshBtn" class="rank-refresh-btn" type="button">🔄 새로고침</button>
     ${meta ? `<div class="rank-refresh-meta">${meta}</div>` : ''}
   </div>`;
 }
@@ -364,9 +398,9 @@ function refreshBoard(ownerId) {
     lastBoardCheck = Date.now();
     const r = parseHash().route;
     if (r === 'a-result' || r === 'b-result' || r === 'a-board') router();
-    else if (btn) { btn.disabled = false; btn.textContent = '🔄 친구 참여 확인하기'; }
+    else if (btn) { btn.disabled = false; btn.textContent = '🔄 새로고침'; }
   }, () => { // 실제 조회 장애 시에만
-    if (btn) { btn.disabled = false; btn.textContent = '🔄 친구 참여 확인하기'; }
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 새로고침'; }
     noticeModal(BOARD_ERR_MSG);
   });
 }
@@ -376,6 +410,7 @@ function router() {
   const render = ROUTES[route] || renderNotFound;
   const app = document.getElementById('app');
   if (bRoulette) { clearInterval(bRoulette); bRoulette = null; } // 토핑 룰렛 정리
+  if (startCycle) { clearInterval(startCycle); startCycle = null; } // 시작화면 음료 루프 정리
   app.innerHTML = '';
   if (RESULT_ROUTES.includes(route) || route === 'a-board') lastBoardCheck = Date.now(); // 진입=1회 조회 기준시각
   render(app, params);
@@ -530,59 +565,38 @@ window.orderHomeMock = orderHomeMock;
 
 /* ---------------- #a-start · 시작 스킨 (일러스트 baked-in) ---------------- */
 function renderAStart(app) {
+  const cycle = Object.keys(DRINKS); // 결과로 나올 12종 베이스 음료(중앙에서 루프)
   app.innerHTML = `
     <div class="page rpage">
       <div class="start-skin">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/start-skin-blank-v11.png')}" alt="" />
-        <div class="ss-title">가을 음료<br>취향 테스트</div>
-        <div class="ss-sub">이 가을, 당신의 음료 유형은?</div>
-        <div class="ss-nickwrap">
-          <input id="nick" class="input" type="text" maxlength="10" placeholder="닉네임을 입력해주세요" autocomplete="off" />
-        </div>
-        <button class="ss-cta" id="startBtn">🍁 테스트 시작하기</button>
+        <img class="skin-bg" src="${assetURL('assets/result-skins/start-skin-poster-blank-v4-1962.png')}" alt="" />
+        <div class="ss-pretitle">900만 카페 유저의 취향을 담아 만든</div>
+        <div class="ss-title">가을 음료<br/>취향 테스트</div>
+        <div class="ss-sub">12가지 음료 유형 중 내 취향은?</div>
+        <div class="ss-drink" id="ssDrink"><img src="${assetURL('assets/drinks/' + cycle[0] + '.png')}" alt="" /></div>
+        <div class="ss-precta">7문항 · 30초면 끝</div>
+        <button class="ss-cta" id="startBtn">🍁 내 가을 음료 찾기</button>
       </div>
     </div>`;
-  const input = app.querySelector('#nick');
-  const go = () => {
-    const nick = input.value.trim();
-    if (!nick) { flagInput(input, '닉네임을 입력해주세요'); return; }
-    session.nick = nick;
-    session.ownerId = getOrCreateOwnerId(nick); // 퀴즈 단계부터 owner_id 붙이려고 미리 생성
-    quizState = { step: 0, answers: {}, group: null, q6: null, prologueDone: false };
+  // 결과 음료 이미지 루프 (b시작 룰렛과 동일 방식)
+  let i = 0;
+  const el = app.querySelector('#ssDrink img');
+  if (startCycle) clearInterval(startCycle);
+  startCycle = setInterval(() => { i = (i + 1) % cycle.length; el.src = assetURL('assets/drinks/' + cycle[i] + '.png'); }, 550);
+  app.querySelector('#startBtn').addEventListener('click', () => {
+    if (startCycle) { clearInterval(startCycle); startCycle = null; }
+    quizState = { step: 0, answers: {}, group: null, q6: null };
     navigate('a-quiz');
-  };
-  app.querySelector('#startBtn').addEventListener('click', go);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  input.addEventListener('input', () => clearInputErr(input));
+  });
 }
 
-/* ---------------- #a-quiz · 프롤로그 + Q1~Q7 ---------------- */
-// 순서: 프롤로그(프롤로그 글 + 닉네임 입력) → Q1~Q5, Q6(동적), Q7  = 7스텝
-let quizState = { step: 0, answers: {}, group: null, q6: null, prologueDone: false };
+/* ---------------- #a-quiz · Q1~Q7 (프롤로그 제거, Q1에 스토리 결합) ---------------- */
+// 순서: Q1~Q5, Q6(동적), Q7 = 7스텝 → 마지막에 닉네임 입력 → 결과
+let quizState = { step: 0, answers: {}, group: null, q6: null };
 const QUIZ_STEPS = 7;
 
 function renderAQuiz(app) {
-  if (!quizState.prologueDone) { renderPrologue(app); return; }
   renderQuizStep(app);
-}
-
-// 프롤로그 화면 · 스토리만 (닉네임은 시작화면에서 수집)
-function renderPrologue(app) {
-  if (!session.nick) { navigate('a-start'); return; } // 닉네임 없이 진입 시 시작화면으로
-  app.innerHTML = `
-    <div class="page prologue-page rpage">
-      <img class="prologue-bg" src="${assetURL('assets/scenes/prologue.png')}" alt="" onerror="this.style.display='none'" />
-      <div class="prologue-content">
-        <div class="prologue-story">${QUIZ.prologue}</div>
-        <div class="spacer"></div>
-        <div class="btn-row">
-          <button id="prologueBtn" class="btn btn-cta3d" style="font-size:18px;padding:19px">마켓 둘러보러 가기 →</button>
-        </div>
-        <div class="pl-lift"></div>
-      </div>
-    </div>`;
-  const go = () => { quizState.prologueDone = true; renderQuizStep(app); };
-  app.querySelector('#prologueBtn').addEventListener('click', go);
 }
 
 function renderQuizStep(app) {
@@ -610,6 +624,7 @@ function renderQuizStep(app) {
     sceneKey = item.key.toLowerCase(); sceneEmoji = item.scene;
   }
 
+  const isLast = (s === QUIZ_STEPS - 1);
   app.innerHTML = `
     <div class="page qpage">
       <div class="progress"><span style="width:${pct}%"></span></div>
@@ -619,24 +634,60 @@ function renderQuizStep(app) {
       <div class="options">
         ${opts.map((o, i) => `<button class="option" data-i="${i}">${o}</button>`).join('')}
       </div>
+      ${isLast ? `
+      <div class="q-nickwrap">
+        <div class="q-nickhint">마지막! 결과 페이지에 들어갈 닉네임을 알려주세요</div>
+        <div class="nick-row">
+          <input id="nick" class="input" type="text" maxlength="10" placeholder="닉네임" autocomplete="off" />
+          <button id="nickRandom" type="button" class="nick-rand">🎲 랜덤</button>
+        </div>
+        <button id="finishBtn" class="btn btn-cta3d">결과 확인하기</button>
+      </div>` : ''}
     </div>`;
 
-  app.querySelectorAll('.option').forEach(btn => {
-    btn.addEventListener('click', () => onQuizAnswer(key, kind, Number(btn.dataset.i)));
-  });
-  logStep('a-quiz-' + (quizState.step + 1), session.ownerId, session.nick); // 문항별 이탈 측정
+  logStep('a-quiz-' + (s + 1), session.ownerId, session.nick); // 문항별 이탈 측정
+
+  if (isLast) {
+    // 마지막 문항(Q7): 답 선택 + 닉네임 입력 후 '결과 확인하기'
+    // 버튼은 항상 활성 → 누르면 부족한 걸 안내(죽은 버튼 방지)
+    let picked = null;
+    const finishBtn = app.querySelector('#finishBtn');
+    const input = app.querySelector('#nick');
+    const optWrap = app.querySelector('.options');
+    app.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
+      app.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      picked = Number(btn.dataset.i);
+      quizState.answers[key] = picked;
+      clearOptErr(optWrap);
+    }));
+    input.addEventListener('input', () => clearInputErr(input));
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') finishBtn.click(); });
+    app.querySelector('#nickRandom').addEventListener('click', () => {
+      input.value = randomNick();
+      clearInputErr(input);
+      input.focus();
+    });
+    finishBtn.addEventListener('click', () => {
+      if (picked === null) { flagOptions(optWrap, '답을 먼저 선택해주세요'); return; }
+      const nick = input.value.trim();
+      if (!nick) { flagInput(input, '닉네임을 입력해주세요'); return; }
+      session.nick = nick;
+      session.ownerId = getOrCreateOwnerId(nick);
+      finishQuiz();
+    });
+  } else {
+    app.querySelectorAll('.option').forEach(btn => {
+      btn.addEventListener('click', () => onQuizAnswer(key, kind, Number(btn.dataset.i)));
+    });
+  }
 }
 
 function onQuizAnswer(key, kind, idx) {
   if (kind === 'q6') quizState.q6 = idx === 0 ? 'a' : 'b';
   else quizState.answers[key] = idx; // scored/flavor 공통 저장(flavor는 미반영)
-
-  if (quizState.step < QUIZ_STEPS - 1) {
-    quizState.step++;
-    renderQuizStep(document.getElementById('app'));
-  } else {
-    finishQuiz();
-  }
+  quizState.step++; // 마지막 문항은 onQuizAnswer를 안 거침(위 isLast 처리)
+  renderQuizStep(document.getElementById('app'));
 }
 
 function finishQuiz() {
@@ -649,8 +700,7 @@ function finishQuiz() {
 
   // 결과 화면 이미지 미리로드(로딩 1.6s 동안) → 결과 도달 시 즉시 표시
   preloadImg(`assets/drinks/${baseDrink}.png`);
-  preloadImg('assets/result-skins/result-skin-blank-v13.png');
-  preloadImg('assets/result-skins/result-skin-extension-blank-v16.png');
+  preloadImg('assets/result-skins/result-skin-blank-v15-topping-cards-adjusted.png');
 
   // 로딩 화면 → 결과
   const app = document.getElementById('app');
@@ -689,7 +739,7 @@ function renderAResult(app, p) {
 
   // 일러스트 스킨(result-skin-blank) 슬롯을 PIL로 실측한 좌표(%)에 텍스트를 얹음
   const TAG_X = [22.0, 40.7, 59.3, 78.0]; // v12 pill 중심 x% (정밀 실측)
-  const tags = d.tags.map((t, i) => `<span class="rs-tag" style="left:${TAG_X[i]}%">#${t}</span>`).join('');
+  const tags = d.tags.map((t, i) => `<span class="rf-tag" style="left:${TAG_X[i]}%">#${t}</span>`).join('');
 
   // 순위판: 참여자 있으면 랭킹, 없으면 "채워지는 구조" 미리보기 스켈레톤 (노멀 플로우 행)
   const board = getBoard(ownerId).slice().sort((a, b) => b.score - a.score);
@@ -702,47 +752,71 @@ function renderAResult(app, p) {
         return rankRow(['🥇', '🥈', '🥉'][i], tp ? toppingImg(tp) : '', e.bnick, e.blendName, e.score, arc, e.score === 100 ? ' is-100' : '');
       }).join('')}</div>${board.length > 3 ? `<div class="ex-more" onclick="location.hash='a-board?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}'">전체 ${board.length}명 순위 보기 ›</div>` : ''}`
     : `<div class="ex-rows ex-preview" aria-hidden="true">${[['🥇', '김시럽', '크림'], ['🥈', '강토핑', '꿀'], ['🥉', '최크림', '대파']]
-        .map(([m, nm, top]) => rankRow(m, '🍯', nm, `${top}${d.name}`, '?', '', ' is-skeleton')).join('')}</div><div class="ex-invite">${aNick}님의 <b>${d.name}</b>에<br/>어울리는 <b>토핑</b>을 추가해보세요👇</div>`;
+        .map(([m, nm, top]) => rankRow(m, '🍯', nm, `${top}${d.name}`, '?', '', ' is-skeleton')).join('')}</div>`;
+
+  const bw = bestWorstTopping(baseDrink);
+  const bestB = bw ? blend(baseDrink, bw.best.t) : null;
+  const worstB = bw ? blend(baseDrink, bw.worst.t) : null;
 
   app.innerHTML = `
     <div class="page rpage">
-      <!-- 상단 결과 카드 = 일러스트 스킨(v5, 풀블리드) + 텍스트 오버레이 -->
-      <div class="result-skin">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v13.png')}" alt="" />
-        <div class="rs-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
-        <span class="rs-title">${d.name}</span>
-        <div class="rs-subtitle">${d.typeTitle} 음료</div>
-        <div class="rs-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
+      <div class="result-full">
+        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v15-topping-cards-adjusted.png')}" alt="" />
+
+        <!-- 메인 결과 카드 -->
+        <div class="rf-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
+        <span class="rf-title">${d.name}</span>
+        <div class="rf-subtitle">${d.shortCopy}</div>
+        <div class="rf-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
              onerror="this.replaceWith(document.createTextNode('${d.emoji}'))" /></div>
         ${tags}
-        <div class="rs-why">${d.why}</div>
-      </div>
-      <!-- 하단 확장 스킨(v5) + 오버레이: 궁합(위) → 부탁 → 대표카페 → 주문 → 다시 -->
-      <div class="result-ext2">
-        <img class="ext-bg" src="${assetURL('assets/result-skins/result-skin-extension-blank-v16.png')}" alt="" />
-        <div class="ex-blend">
-          <div class="ex-title">🏆 친구와의 토핑 궁합</div>
+        <div class="rf-why">${d.why}</div>
+
+        <!-- 최고 / 최악 토핑 궁합 카드 -->
+        <div class="rf-card rf-card-l">
+          <div class="rf-card-title">💚 최고의 궁합</div>
+          <div class="rf-card-img">${bestB ? `<img src="${blendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
+          <div class="rf-card-name">${bestB ? bestB.blendName : '-'}</div>
+          <div class="rf-card-score" style="color:var(--orange)">${bestB ? bestB.score + '%' : ''}</div>
+        </div>
+        <div class="rf-card rf-card-r">
+          <div class="rf-card-title">⚡ 최악의 궁합</div>
+          <div class="rf-card-img">${worstB ? `<img src="${blendImg(baseDrink, bw.worst.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
+          <div class="rf-card-name">${worstB ? worstB.blendName : '-'}</div>
+          <div class="rf-card-score" style="color:var(--maple)">${worstB ? worstB.score + '%' : ''}</div>
+        </div>
+
+        <!-- 토핑 요청(공유) 버튼 -->
+        ${isOwner ? '<div class="rf-share-hint">친구가 토핑을 골라주면 우리 궁합이 완성돼요!</div>' : ''}
+        <button class="rf-share btn btn-cta3d" id="shareBtn">${isOwner ? '🔗 친구에게 토핑 받기' : `🎡 나도 ${aNick}님 음료에 토핑 추가하기`}</button>
+
+        <!-- 친구와의 토핑 궁합 순위 -->
+        <div class="rf-rank">
+          <div class="rf-rank-title">🏆 친구와의 토핑 궁합</div>
           ${blendBox}
           ${refreshBlock('skin')}
         </div>
-        <button class="btn ${isOwner ? 'btn-primary' : 'btn-cta3d'} ex-share" id="shareBtn">${isOwner ? '🔗 친구에게 토핑 부탁하기' : `🎡 나도 ${aNick}님 음료에 토핑 추가하기`}</button>
-        <div class="ex-cafe">
-          <div class="ex-cafe-title">이 음료 파는 대표 카페</div>
-          <div class="ex-cafe-list">
-            ${d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="ex-cafe-row"><span class="ex-cafe-b">${b}</span><span class="ex-cafe-m">${m}</span></div>`; }).join('')}
+        <button class="rf-rankbtn" id="rankViewBtn">전체 순위 보기 ›</button>
+
+        <!-- 대표 카페 -->
+        <div class="rf-cafe">
+          <div class="rf-cafe-title">이 음료 파는 대표 카페</div>
+          <div class="rf-cafe-list">
+            ${d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rf-cafe-row"><span class="rf-cafe-b">${b}</span><span class="rf-cafe-m">${m}</span></div>`; }).join('')}
           </div>
         </div>
-        <button class="btn ex-order" id="aOrderBtn">🛒 ${d.name} 주문하기</button>
-        ${isOwner ? '<button class="btn btn-ghost ex-again" id="aAgainBtn">🔄 다시 하기</button>' : ''}
+        <button class="rf-order btn" id="aOrderBtn">🛒 ${d.name} 주문하기</button>
+        ${isOwner ? '<button class="btn btn-ghost rf-again" id="aAgainBtn">🔄 다시 하기</button>' : ''}
       </div>
     </div>`;
 
   app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
+  app.querySelector('#rankViewBtn').addEventListener('click', () => { location.hash = 'a-board?ownerId=' + encodeURIComponent(ownerId) + '&baseDrink=' + baseDrink; });
   app.querySelector('#shareBtn').addEventListener('click', () => {
     if (isOwner) { // 본인: 친구 초대(결과판 링크 공유)
       flagClick('result', '공유클릭', ownerId);
       const url = shareUrlForResult(ownerId, baseDrink);
-      shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해서 우리만의 커스텀 음료를 만들어보자!\n${url}`);
+      shareContent(`제 가을 음료 결과가 나왔어요! 🍁\n여기 어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 골라주실래요?\n${url}`);
     } else {       // 친구/방문자: 토핑 참여(룰렛으로)
       const go = () => { flagClick('result', '토핑추가클릭', ownerId); navigate('b-start', { ownerId, baseDrink }); };
       if (LS.get(participatedKey(ownerId))) { // 이미 참여 → 다시 뽑으면 이전 토핑 결과가 새 결과로 리셋됨을 경고
@@ -753,7 +827,7 @@ function renderAResult(app, p) {
       } else { go(); }
     }
   });
-  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(d.name, aNick, d.name); });
+  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(drinkKeyword(d.name), aNick, d.name); });
   app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
     const reset = () => {
       flagClick('result', '다시하기클릭', ownerId);
@@ -794,6 +868,7 @@ function shareUrlForBoard(ownerId, baseDrink) {
 
 /* ---------------- #b-start · 토핑 뽑기 (b-start + b-pick 결합 · 룰렛) ---------------- */
 let bRoulette = null;
+let startCycle = null; // 시작화면 결과음료 루프 인터벌
 function renderBStart(app, p) {
   const { ownerId, baseDrink } = p;
   const d = DRINKS[baseDrink];
@@ -977,7 +1052,7 @@ function renderBResult(app, p) {
     </div>`;
 
   app.querySelector('#rankBackBtn').addEventListener('click', () => navigate('a-result', { ownerId, baseDrink }));
-  app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, orderQuery, r.blendName); });
+  app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, drinkKeyword(orderQuery), r.blendName); });
   app.querySelector('#bRedoBtn').addEventListener('click', () => { flagClick('join', '나도테스트클릭', ownerId); session.entry = 'from_friend'; location.hash = 'a-start'; });
 
   // 궁합 게이지 차오름 + 숫자 카운트업
@@ -1107,7 +1182,7 @@ function renderABoard(app, p) {
   app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#boardShareBtn').addEventListener('click', () => {
     const url = shareUrlForResult(ownerId, baseDrink);
-    shareContent(`우리 둘 취향을 섞으면 어떤 한 잔이 나올까?\n네 취향 한 스푼을 더해줘!\n${url}`);
+    shareContent(`제 가을 음료 결과가 나왔어요! 🍁\n여기 어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 골라주실래요?\n${url}`);
   });
 }
 

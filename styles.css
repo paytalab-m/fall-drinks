@@ -374,7 +374,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 /* 퀴즈 상단 맥락 라벨 — 은유 문항 속에서도 "음료 찾기"임을 상기 */
 .quiz-ctx { text-align: center; font-size: 12.5px; font-weight: 800; color: var(--orange-dk); letter-spacing: 0.2px; margin-bottom: 8px; }
 /* 뷰포트 안에 딱 맞게 — 이미지 캡으로 잘림 방지. 답변은 질문 바로 아래(문항 수 무관 동일 위치) */
-.qpage { padding-top: 20px; padding-bottom: 5vh; }
+.qpage { padding-top: 20px; padding-bottom: 5.5dvh; }
 .qpage .scene { max-width: min(238px, 28vh); }
 
 /* ---------- 로딩 다람쥐 3프레임 루프 (이미지 번갈아) ---------- */
@@ -711,7 +711,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 /* b시작과 동일: 배경 cover로 뷰포트 꽉 채움 (하단만 살짝 크롭) */
 .start-skin .skin-bg {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: center top;
+  object-fit: cover; object-position: center center;
 }
 /* 타이틀 = 가을 취향 테스트 (상단 하늘 · 2줄 크게 · 스티커, 그림자 없음) */
 .ss-title {
@@ -743,7 +743,66 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
   box-shadow: 0 6px 0 #A64A1C, 0 10px 14px rgba(74,52,33,0.25);
   text-shadow: 0 1px 2px rgba(120,50,20,0.35);
 }
-.ss-cta:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 3px 0 #A64A1C, 0 6px 10px rgba(74,52,33,0.25); }
+.ss-cta { animation: ssCtaFloat 1.9s ease-in-out infinite; }
+.ss-cta:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 3px 0 #A64A1C, 0 6px 10px rgba(74,52,33,0.25); animation: none; }
+@keyframes ssCtaFloat {
+  0%,100% { transform: translateX(-50%) translateY(0);    box-shadow: 0 6px 0 #A64A1C, 0 10px 14px rgba(74,52,33,0.25); }
+  50%     { transform: translateX(-50%) translateY(-6px); box-shadow: 0 9px 0 #A64A1C, 0 18px 22px rgba(74,52,33,0.22); }
+}
+@media (prefers-reduced-motion: reduce) { .ss-cta { animation: none; } }
+
+/* ===== v2 시작화면 (poster 크림 배경) ===== */
+.ss-title {
+  top: 24%; width: 92%; font-size: 14.5cqw; line-height: 1.12; white-space: normal;
+  color: var(--maple); -webkit-text-stroke: 7px #FFFDF8; paint-order: stroke fill;
+  filter: drop-shadow(0 4px 3px rgba(74,52,33,0.18));
+}
+.ss-sub {
+  top: 36%; color: #6E4A2B; text-shadow: none;
+}
+.ss-pretitle {
+  top: 12.5%; left: 50%; transform: translate(-50%,-50%);
+  font-weight: 700; font-size: 3.1cqw; color: #A6653A; white-space: nowrap;
+  background: none; padding: 0; letter-spacing: 0.2px;
+}
+.ss-drink {
+  top: 58%; left: 50%; transform: translate(-50%,-50%);
+  width: 82%; display: flex; align-items: center; justify-content: center;
+  background: none;
+}
+.ss-drink img { width: 100%; height: auto; filter: drop-shadow(0 8px 12px rgba(74,52,33,0.22)); }
+.ss-precta {
+  bottom: 13.5%; left: 50%; transform: translateX(-50%);
+  font-weight: 700; font-size: 3.4cqw; color: #8A6A4A; white-space: nowrap;
+  text-shadow: none;
+}
+
+/* ===== 닉네임 입력 화면(결과 직전) ===== */
+.nick-page { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; background: #FAECE7; }
+.nick-box { background: #FFFDF8; border: 1px solid rgba(74,52,33,0.14); border-radius: 22px; padding: 30px 22px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 12px 32px rgba(74,52,33,0.18); display: flex; flex-direction: column; gap: 12px; }
+.nick-emoji { font-size: 40px; }
+.nick-title { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 21px; color: #2C2C2A; }
+.nick-sub { font-size: 13px; color: #8A7159; margin-top: -4px; margin-bottom: 4px; }
+.nick-box .input { text-align: center; padding: 14px 16px; font-size: 15px; }
+.nick-box .btn-cta3d { font-size: 17px; padding: 16px; }
+
+/* ===== Q7 마지막 문항: 닉네임 입력 통합 ===== */
+.q-nickwrap { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.q-nickhint { text-align: center; font-size: 12.5px; font-weight: 700; color: var(--orange-dk); margin-bottom: -2px; }
+.nick-row { display: flex; gap: 8px; align-items: stretch; }
+.nick-row .input { flex: 1; min-width: 0; }
+.nick-rand { flex: 0 0 auto; padding: 0 14px; border: 2px solid var(--orange); background: #fff; color: var(--orange-dk); font-weight: 800; font-size: 14px; border-radius: 12px; white-space: nowrap; cursor: pointer; }
+.nick-rand:active { transform: scale(0.96); }
+/* 질문 핵심 포인트 강조 */
+.q-hl { color: var(--orange); }
+/* Q7 답 미선택 경고 */
+.options.shake { animation: shake .4s ease; }
+.opt-err { margin-top: 0; margin-bottom: 8px; }
+.q-nickwrap .input { text-align: center; padding: 14px 16px; font-size: 15px; }
+.q-nickwrap .btn-cta3d { font-size: 16px; padding: 15px; }
+.option.selected { border-color: var(--orange); background: #FFF4EC; color: var(--orange-dk); font-weight: 800; box-shadow: 0 4px 12px rgba(232,132,60,0.22); }
+.btn-cta3d[disabled] { opacity: .45; box-shadow: 0 6px 0 #A64A1C, 0 10px 14px rgba(74,52,33,0.15); cursor: default; }
+.btn-cta3d[disabled]:active { transform: none; }
 
 /* ---------- A 결과 · 확장 스킨 (대표카페 + 블렌딩유도 + 버튼) ---------- */
 .result-ext {
@@ -1021,3 +1080,53 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .br-cta1 { top: 52.5%; background: #D3611D; }
 .br-orderhint { position: absolute; top: 60.5%; left: 8%; width: 84%; text-align: center; font-size: 3.4cqw; font-weight: 700; color: var(--maple); }
 .br-cta2 { top: 66.5%; background: var(--card); color: var(--ink); box-shadow: var(--sh-soft); }
+
+/* ============ v2 결과 페이지 (단일 배경 result-skin-blank-v14-topping-cards-full) ============ */
+.result-full { position: relative; width: 100%; container-type: inline-size; }
+.result-full .skin-bg { display: block; width: 100%; height: auto; }
+.result-full > *:not(.skin-bg) { position: absolute; }
+
+/* 메인 카드 (기존 rs-* 폴리시 이식) */
+.rf-badge { top: 2.7%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-weight: 800; font-size: 3cqw; white-space: nowrap; background: var(--ink); padding: 1.2cqw 3.6cqw; border-radius: 999px; box-shadow: 0 1px 4px rgba(74,52,33,0.15); }
+.rf-title { top: 8.3%; left: 50%; transform: translate(-50%,-50%); font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700; font-size: 8cqw; line-height: 1; color: #3B2A1E; white-space: nowrap; }
+.rf-subtitle { top: 10.4%; left: 50%; transform: translate(-50%,-50%); font-weight: 700; font-size: 3.4cqw; color: #6E4A2B; white-space: nowrap; }
+.rf-drink { top: 16.3%; left: 49%; transform: translate(-50%,-50%); width: 48%; display: flex; align-items: flex-end; justify-content: center; }
+.rf-drink img { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(74,52,33,0.25)); }
+.rf-tag { top: 24%; transform: translate(-50%,-50%); font-weight: 800; font-size: 2.55cqw; color: #4A2A10; white-space: nowrap; text-align: center; }
+.rf-why { top: 30.6%; left: 14%; right: 14%; transform: translateY(-50%); text-align: center; font-size: 3.3cqw; line-height: 1.5; color: #3B2A1E; font-weight: 500; word-break: keep-all; text-wrap: pretty; }
+
+/* 최고/최악 토핑 궁합 카드 (좌우 완전 동일 레이아웃) */
+.rf-card { top: 37.8%; height: 10.2%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 2.6cqw 0 1.4cqw; }
+.rf-card-l { left: 7.9%; width: 39.8%; }
+.rf-card-r { left: 52.3%; width: 39.8%; }
+.rf-card-title { font-weight: 800; font-size: 3cqw; color: var(--orange-dk); line-height: 1; }
+.rf-card-img { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; margin: 0.6cqw 0; }
+.rf-card-img img { height: 110%; width: auto; max-width: 74%; object-fit: contain; }
+.rf-card-name { font-size: 2.6cqw; font-weight: 700; color: #3B2A1E; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 96%; line-height: 1; }
+.rf-card-score { font-size: 4cqw; font-weight: 800; line-height: 1; }
+
+/* 토핑 요청(공유) 버튼 */
+.rf-share-hint { top: 49.5%; left: 50%; transform: translate(-50%,-50%); width: 96%; text-align: center; font-size: 3.35cqw; font-weight: 700; color: #6E4A2B; white-space: nowrap; }
+.rf-share { top: 52.2%; left: 50%; transform: translate(-50%,-50%); width: 84%; font-size: 4cqw; padding: 3.2cqw 0; justify-content: center; }
+.rf-share:active { transform: translate(-50%,-50%) translateY(3px); }
+
+/* 친구와의 토핑 궁합 순위 카드 */
+.rf-rank { top: 56.2%; left: 14%; width: 72%; max-height: 13.5%; overflow: hidden; }
+.rf-rank-title { text-align: center; font-weight: 800; font-size: 3.7cqw; color: var(--orange-dk); margin-bottom: 1.2cqw; }
+.rf-rankbtn { top: 72.4%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; border: 2px solid var(--orange); color: var(--orange-dk); font-weight: 800; font-size: 4.2cqw; padding: 3cqw 0; border-radius: 999px; cursor: pointer; box-shadow: var(--sh-soft); }
+.rf-rankbtn:active { transform: translate(-50%,-50%) scale(0.97); }
+
+/* 대표 카페 */
+.rf-cafe { top: 79%; left: 15.5%; width: 69%; }
+.rf-cafe-title { text-align: center; font-weight: 800; font-size: 3.5cqw; color: var(--orange-dk); padding-bottom: 0.6cqw; margin-bottom: 0.8cqw; }
+.rf-cafe-list { display: flex; flex-direction: column; }
+.rf-cafe-row { display: flex; align-items: baseline; gap: 2cqw; padding: 0.8cqw 0; border-bottom: 1px dashed rgba(74,52,33,0.14); }
+.rf-cafe-row:last-child { border-bottom: none; }
+.rf-cafe-b { font-weight: 800; font-size: 3cqw; color: #2C2C2A; white-space: nowrap; }
+.rf-cafe-m { font-size: 2.85cqw; color: #8A7159; }
+
+/* 주문 버튼 — 컬러/두께를 순위보기 버튼과 동일하게 (orange-dk, 800, pill) · 베이크된 카페 카드(하단 89.4%) 아래로 */
+.rf-order { top: 91.4%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; color: var(--orange-dk); font-weight: 800; border: 2px solid var(--orange); border-radius: 999px; box-shadow: var(--sh-soft); font-size: 4.2cqw; padding: 3cqw 0; }
+
+/* 다시하기 — 주문하기 버튼 바로 아래 */
+.rf-again { top: 96%; left: 50%; transform: translate(-50%,-50%); width: 84%; justify-content: center; }
