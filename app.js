@@ -788,7 +788,7 @@ function renderAResult(app, p) {
         <div class="rf-why">${d.why}</div>
 
         <!-- 2열 궁합 카드 위 카피 -->
-        <div class="rf-copy1">${d.name}에 다양한 토핑을 조합해 볼 수 있어요!</div>
+        <div class="rf-copy1"><b>${d.name}</b>에 다양한 <b>토핑</b>을 조합해 볼 수 있어요!</div>
 
         <!-- 최고 / 최악 토핑 궁합 카드 -->
         <div class="rf-card rf-card-l">

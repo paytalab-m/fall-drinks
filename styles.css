@@ -1094,7 +1094,8 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 
 /* ============ 결과 페이지 v17 베이크 프레임 위 신규 절대배치 요소 ============ */
 .rf-toback { z-index: 20; } /* a결과 좌상단: 토핑 뽑기로 복귀 (b-start에서 순위판 보기로 넘어온 경우) */
-.rf-copy1 { top: 34.2%; left: 50%; transform: translate(-50%,-50%); width: 92%; text-align: center; font-weight: 800; font-size: 3.5cqw; color: var(--orange-dk); white-space: nowrap; }
+.rf-copy1 { top: 34.2%; left: 50%; transform: translate(-50%,-50%); width: 92%; text-align: center; font-weight: 800; font-size: 3.5cqw; color: #2C2C2A; white-space: nowrap; }
+.rf-copy1 b { color: var(--orange-dk); }
 .rf-friend { top: 47.5%; left: 50%; transform: translate(-50%,-50%); width: 88%; text-align: center; font-weight: 600; font-size: 3.4cqw; line-height: 1.5; color: #5B4636; word-break: keep-all; }
 .rf-friend b { color: var(--orange-dk); }
 .rf-marquee { top: 51.3%; left: 8%; width: 84%; transform: translateY(-50%); overflow: hidden;
