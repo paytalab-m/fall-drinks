@@ -793,7 +793,7 @@ function renderAResult(app, p) {
         <!-- 최고 / 최악 토핑 궁합 카드 -->
         <div class="rf-card rf-card-l">
           <div class="rf-card-title">💚 최고의 궁합</div>
-          <div class="rf-card-img">${bestB ? `<img src="${comboOrBlendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
+          <div class="rf-card-img">${bestB ? `<img src="${blendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
           <div class="rf-card-name">${bestB ? bestB.blendName : '-'}</div>
           <div class="rf-card-score" style="color:var(--orange)">${bestB ? bestB.score + '%' : ''}</div>
         </div>
