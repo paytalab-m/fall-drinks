@@ -753,12 +753,12 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 
 /* ===== v2 시작화면 (poster 크림 배경) ===== */
 .ss-title {
-  top: 24%; width: 92%; font-size: 14.5cqw; line-height: 1.12; white-space: normal;
+  top: 23%; width: 92%; font-size: 13.5cqw; line-height: 1.12; white-space: normal;
   color: var(--maple); -webkit-text-stroke: 7px #FFFDF8; paint-order: stroke fill;
   filter: drop-shadow(0 4px 3px rgba(74,52,33,0.18));
 }
 .ss-sub {
-  top: 36%; color: #6E4A2B; text-shadow: none;
+  top: 34%; color: #6E4A2B; text-shadow: none;
 }
 .ss-pretitle {
   top: 12.5%; left: 50%; transform: translate(-50%,-50%);
@@ -766,13 +766,13 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
   background: none; padding: 0; letter-spacing: 0.2px;
 }
 .ss-drink {
-  top: 58%; left: 50%; transform: translate(-50%,-50%);
-  width: 82%; display: flex; align-items: center; justify-content: center;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 70%; display: flex; align-items: center; justify-content: center;
   background: none;
 }
 .ss-drink img { width: 100%; height: auto; filter: drop-shadow(0 8px 12px rgba(74,52,33,0.22)); }
 .ss-precta {
-  bottom: 13.5%; left: 50%; transform: translateX(-50%);
+  bottom: 16.5%; left: 50%; transform: translateX(-50%);
   font-weight: 700; font-size: 3.4cqw; color: #8A6A4A; white-space: nowrap;
   text-shadow: none;
 }
