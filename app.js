@@ -903,10 +903,10 @@ function renderBStart(app, p) {
         <span class="bg-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}" onerror="this.parentElement.textContent='🥤'" /></span>
       </div>
       <div class="bg-lower">
-        <input id="bnick" class="input" type="text" maxlength="10" placeholder="내 닉네임 (예: 철수)" autocomplete="off" />
-        <button id="startBtn" class="btn btn-primary bg-stop">🎡 룰렛 돌리기</button>
-        <button id="stopBtn" class="btn btn-primary bg-stop" style="display:none">STOP!</button>
-        <div class="bg-hint" id="bgHint">닉네임을 입력하고 룰렛을 돌려요</div>
+        <input id="bnick" class="input" type="text" maxlength="10" placeholder="내 닉네임 (예: 가을다람쥐)" autocomplete="off" />
+        <button id="startBtn" class="btn btn-primary bg-stop">🎡 토핑 뽑고 궁합 보기</button>
+        <button id="stopBtn" class="btn btn-primary bg-stop" style="display:none">여기서 멈추기!</button>
+        <div class="bg-hint" id="bgHint">닉네임을 입력하고 토핑을 뽑아보세요</div>
       </div>
     </div>`;
 
@@ -933,7 +933,7 @@ function renderBStart(app, p) {
     input.disabled = true; input.style.display = 'none';
     startBtn.style.display = 'none';
     stopBtn.style.display = '';
-    hint.textContent = '빠르게 지나가는 토핑! STOP을 눌러 멈춰요 🎯';
+    hint.textContent = '토핑이 빠르게 지나가요! 원하는 순간 멈추기 🎯';
     if (bRoulette) clearInterval(bRoulette);       // 느린 미리보기 정지
     bRoulette = setInterval(spin, 85);             // 빠른 회전 시작
 
