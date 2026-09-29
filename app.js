@@ -774,12 +774,11 @@ function renderAResult(app, p) {
 
   app.innerHTML = `
     <div class="page rpage">
-      ${p.owner === '1' ? '<button class="rank-back rank-back-strong rf-toback" id="toBStartBtn" type="button">토핑 뽑으러 가기 ›</button>' : ''}
       <div class="result-full">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v21-large-cards-up-100.png')}" alt="" />
+        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v20-large-cards-adjusted.png')}" alt="" />
 
         <!-- 메인 결과 카드 -->
-        <div class="rf-badge${p.owner === '1' ? ' rf-badge-down' : ''}">🍁 ${aNick}님의 가을 음료 취향은?</div>
+        <div class="rf-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
         <span class="rf-title">${d.name}</span>
         <div class="rf-subtitle">${d.shortCopy}</div>
         <div class="rf-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
@@ -832,7 +831,6 @@ function renderAResult(app, p) {
     </div>`;
 
   app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
-  app.querySelector('#toBStartBtn')?.addEventListener('click', () => navigate('b-start', { ownerId, baseDrink })); // 토핑 뽑기로 복귀
   app.querySelector('#rankViewBtn').addEventListener('click', () => { location.hash = 'a-board?ownerId=' + encodeURIComponent(ownerId) + '&baseDrink=' + baseDrink; });
   // 친구/방문자: 토핑 참여(룰렛으로) — 상단 초대 배너·하단 CTA 공통
   const participate = () => {
