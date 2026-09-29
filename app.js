@@ -735,7 +735,8 @@ function renderAResult(app, p) {
   if (!d) { navigate('a-start'); return; }
   const aNick = ownerNickFromId(ownerId);
   // 본인(이 브라우저에서 A를 완주한 사람)인지 = 버튼 노출만 결정. 순위판은 늘 서버에서 로드되므로 구분 실패해도 결과판은 정상.
-  const isOwner = (LS.get('passorder_a_done') || {}).ownerId === ownerId;
+  // owner=1 → b-start '순위판 보기'로 진입 = 내 결과판(공유 버튼) 뷰로 강제
+  const isOwner = ((LS.get('passorder_a_done') || {}).ownerId === ownerId) || p.owner === '1';
 
   // 일러스트 스킨(result-skin-blank) 슬롯을 PIL로 실측한 좌표(%)에 텍스트를 얹음
   const TAG_X = [22.0, 40.7, 59.3, 78.0]; // v12 pill 중심 x% (정밀 실측)
@@ -918,7 +919,7 @@ function renderBStart(app, p) {
 
   app.querySelector('#rankBackBtn').addEventListener('click', () => {
     if (bRoulette) { clearInterval(bRoulette); bRoulette = null; } // 룰렛 정지 후 복귀
-    navigate('a-result', { ownerId, baseDrink });
+    navigate('a-result', { ownerId, baseDrink, owner: '1' }); // 내 결과판(공유 버튼) 뷰
   });
 
   const input = app.querySelector('#bnick');
@@ -1053,7 +1054,7 @@ function renderBResult(app, p) {
       </div>
     </div>`;
 
-  app.querySelector('#rankBackBtn').addEventListener('click', () => navigate('a-result', { ownerId, baseDrink }));
+  app.querySelector('#rankBackBtn').addEventListener('click', () => navigate('a-result', { ownerId, baseDrink, owner: '1' }));
   app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, drinkKeyword(orderQuery), r.blendName); });
   app.querySelector('#bRedoBtn').addEventListener('click', () => { flagClick('join', '나도테스트클릭', ownerId); session.entry = 'from_friend'; location.hash = 'a-start'; });
 
