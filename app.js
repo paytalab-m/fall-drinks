@@ -774,12 +774,12 @@ function renderAResult(app, p) {
 
   app.innerHTML = `
     <div class="page rpage">
-      ${p.owner === '1' ? '<button class="rank-back rank-back-strong rf-toback" id="toBStartBtn" type="button">‹ 토핑 뽑으러 가기</button>' : ''}
+      ${p.owner === '1' ? '<button class="rank-back rank-back-strong rf-toback" id="toBStartBtn" type="button">토핑 뽑으러 가기 ›</button>' : ''}
       <div class="result-full">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v18-spacing-810x4060.png')}" alt="" />
+        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v21-large-cards-up-100.png')}" alt="" />
 
         <!-- 메인 결과 카드 -->
-        <div class="rf-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
+        <div class="rf-badge${p.owner === '1' ? ' rf-badge-down' : ''}">🍁 ${aNick}님의 가을 음료 취향은?</div>
         <span class="rf-title">${d.name}</span>
         <div class="rf-subtitle">${d.shortCopy}</div>
         <div class="rf-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
@@ -926,7 +926,7 @@ function renderBStart(app, p) {
       <div class="bg-lower">
         <input id="bnick" class="input" type="text" maxlength="10" placeholder="내 닉네임 (예: 가을다람쥐)" autocomplete="off" />
         <button id="startBtn" class="btn btn-primary bg-stop">🎡 토핑 뽑고 궁합 보기</button>
-        <button id="stopBtn" class="btn btn-primary bg-stop" style="display:none">여기서 멈추기!</button>
+        <button id="stopBtn" class="btn btn-primary bg-stop" style="display:none">STOP!</button>
         <div class="bg-hint" id="bgHint">닉네임을 입력하고 토핑을 뽑아보세요</div>
       </div>
     </div>`;
@@ -954,7 +954,7 @@ function renderBStart(app, p) {
     input.disabled = true; input.style.display = 'none';
     startBtn.style.display = 'none';
     stopBtn.style.display = '';
-    hint.textContent = '토핑이 빠르게 지나가요! 원하는 순간 멈추기 🎯';
+    hint.textContent = '빠르게 지나가는 토핑! STOP을 눌러 멈춰요 🎯';
     if (bRoulette) clearInterval(bRoulette);       // 느린 미리보기 정지
     bRoulette = setInterval(spin, 85);             // 빠른 회전 시작
 

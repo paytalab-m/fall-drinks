@@ -1019,7 +1019,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 /* ---- b-start: 토핑 뽑기 게임 (풀스크린 게임 배경) ---- */
 .bgame { position: relative; width: 100%; min-height: 100vh; min-height: 100dvh; overflow: hidden; animation: fadeIn .35s ease both; }
 .bgame-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center bottom; z-index: 0; }
-.bg-head { position: absolute; top: 8%; left: 0; right: 0; z-index: 3; text-align: center; padding: 0 22px; }
+.bg-head { position: absolute; top: 13%; left: 0; right: 0; z-index: 3; text-align: center; padding: 0 22px; }
 .bg-badge { display: inline-block; background: var(--ink); color: #fff; font-size: 12.5px; font-weight: 800; padding: 6px 14px; border-radius: 999px; margin-bottom: 10px; box-shadow: var(--sh-soft); }
 .bg-title { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 22px; line-height: 1.35; color: var(--ink); -webkit-text-stroke: 3px #fff; paint-order: stroke fill; }
 .bg-title b { color: #C0432E; }
@@ -1093,12 +1093,13 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .br-cta2 { top: 66.5%; background: var(--card); color: var(--ink); box-shadow: var(--sh-soft); }
 
 /* ============ 결과 페이지 v17 베이크 프레임 위 신규 절대배치 요소 ============ */
-.rf-toback { z-index: 20; } /* a결과 좌상단: 토핑 뽑기로 복귀 (b-start에서 순위판 보기로 넘어온 경우) */
-.rf-copy1 { top: 34.2%; left: 50%; transform: translate(-50%,-50%); width: 92%; text-align: center; font-weight: 800; font-size: 3.5cqw; color: #2C2C2A; white-space: nowrap; }
+.rf-toback { left: auto; right: 12px; z-index: 20; animation: none; } /* a결과 우상단: 토핑 뽑기로 복귀 */
+.rf-badge.rf-badge-down { top: 5.8%; } /* owner=1(우상단 버튼)일 때 뱃지 살짝 내려 버튼과 겹침 방지 */
+.rf-copy1 { top: 37.6%; left: 50%; transform: translate(-50%,-50%); width: 92%; text-align: center; font-weight: 800; font-size: 3.5cqw; color: #2C2C2A; white-space: nowrap; }
 .rf-copy1 b { color: var(--orange-dk); }
-.rf-friend { top: 47.5%; left: 50%; transform: translate(-50%,-50%); width: 88%; text-align: center; font-weight: 600; font-size: 3.4cqw; line-height: 1.5; color: #5B4636; word-break: keep-all; }
+.rf-friend { top: 51.5%; left: 50%; transform: translate(-50%,-50%); width: 88%; text-align: center; font-weight: 600; font-size: 3.4cqw; line-height: 1.5; color: #5B4636; word-break: keep-all; }
 .rf-friend b { color: var(--orange-dk); }
-.rf-marquee { top: 51.3%; left: 8%; width: 84%; transform: translateY(-50%); overflow: hidden;
+.rf-marquee { top: 54.9%; left: 8%; width: 84%; transform: translateY(-50%); overflow: hidden;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
 .rf-marquee-track { display: flex; gap: 3.5cqw; width: max-content; animation: rfmarq 16s linear infinite; }
@@ -1112,16 +1113,16 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .result-full > *:not(.skin-bg) { position: absolute; }
 
 /* 메인 카드 (기존 rs-* 폴리시 이식) */
-.rf-badge { top: 2.37%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-weight: 800; font-size: 3cqw; white-space: nowrap; background: var(--ink); padding: 1.2cqw 3.6cqw; border-radius: 999px; box-shadow: 0 1px 4px rgba(74,52,33,0.15); }
-.rf-title { top: 7.31%; left: 50%; transform: translate(-50%,-50%); font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700; font-size: 8cqw; line-height: 1; color: #3B2A1E; white-space: nowrap; }
-.rf-subtitle { top: 9.21%; left: 50%; transform: translate(-50%,-50%); font-weight: 700; font-size: 3.4cqw; color: #6E4A2B; white-space: nowrap; }
-.rf-drink { top: 14.43%; left: 49%; transform: translate(-50%,-50%); width: 48%; display: flex; align-items: flex-end; justify-content: center; }
+.rf-badge { top: 2.62%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-weight: 800; font-size: 3cqw; white-space: nowrap; background: var(--ink); padding: 1.2cqw 3.6cqw; border-radius: 999px; box-shadow: 0 1px 4px rgba(74,52,33,0.15); }
+.rf-title { top: 8.05%; left: 50%; transform: translate(-50%,-50%); font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700; font-size: 8cqw; line-height: 1; color: #3B2A1E; white-space: nowrap; }
+.rf-subtitle { top: 10.08%; left: 50%; transform: translate(-50%,-50%); font-weight: 700; font-size: 3.4cqw; color: #6E4A2B; white-space: nowrap; }
+.rf-drink { top: 15.97%; left: 49%; transform: translate(-50%,-50%); width: 48%; display: flex; align-items: flex-end; justify-content: center; }
 .rf-drink img { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 5px 7px rgba(74,52,33,0.25)); }
-.rf-tag { top: 21.17%; transform: translate(-50%,-50%); font-weight: 800; font-size: 2.55cqw; color: #4A2A10; white-space: nowrap; text-align: center; }
-.rf-why { top: 27.06%; left: 14%; right: 14%; transform: translateY(-50%); text-align: center; font-size: 3.3cqw; line-height: 1.5; color: #3B2A1E; font-weight: 500; word-break: keep-all; text-wrap: pretty; }
+.rf-tag { top: 23.24%; transform: translate(-50%,-50%); font-weight: 800; font-size: 2.55cqw; color: #4A2A10; white-space: nowrap; text-align: center; }
+.rf-why { top: 29.65%; left: 14%; right: 14%; transform: translateY(-50%); text-align: center; font-size: 3.3cqw; line-height: 1.5; color: #3B2A1E; font-weight: 500; word-break: keep-all; text-wrap: pretty; }
 
 /* 최고/최악 토핑 궁합 카드 (좌우 완전 동일 레이아웃) */
-.rf-card { top: 36%; height: 8.87%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 2.6cqw 0 1.4cqw; }
+.rf-card { top: 39.6%; height: 9.46%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 2.6cqw 0 1.4cqw; }
 .rf-card-l { left: 6.2%; width: 41.4%; }
 .rf-card-r { left: 52.5%; width: 41.4%; }
 .rf-card-title { font-weight: 800; font-size: 3cqw; color: var(--orange-dk); line-height: 1; }
@@ -1132,17 +1133,17 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 
 /* 토핑 요청(공유) 버튼 */
 .rf-share-hint { top: 49.5%; left: 50%; transform: translate(-50%,-50%); width: 96%; text-align: center; font-size: 3.35cqw; font-weight: 700; color: #6E4A2B; white-space: nowrap; }
-.rf-share { top: 54.4%; left: 50%; transform: translate(-50%,-50%); width: 84%; font-size: 4cqw; padding: 3.2cqw 0; justify-content: center; }
+.rf-share { top: 58.4%; left: 50%; transform: translate(-50%,-50%); width: 84%; font-size: 4cqw; padding: 3.2cqw 0; justify-content: center; }
 .rf-share:active { transform: translate(-50%,-50%) translateY(3px); }
 
 /* 친구와의 토핑 궁합 순위 카드 */
-.rf-rank { top: 62.7%; left: 13%; width: 74%; max-height: 9.4%; overflow: hidden; }
+.rf-rank { top: 62.4%; left: 13%; width: 74%; max-height: 10.5%; overflow: hidden; }
 .rf-rank-title { text-align: center; font-weight: 800; font-size: 3.7cqw; color: var(--orange-dk); margin-bottom: 1.2cqw; }
-.rf-rankbtn { top: 77.7%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; border: 2px solid var(--orange); color: var(--orange-dk); font-weight: 800; font-size: 4.2cqw; padding: 3cqw 0; border-radius: 999px; cursor: pointer; box-shadow: var(--sh-soft); }
+.rf-rankbtn { top: 75.9%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; border: 2px solid var(--orange); color: var(--orange-dk); font-weight: 800; font-size: 4.2cqw; padding: 3cqw 0; border-radius: 999px; cursor: pointer; box-shadow: var(--sh-soft); }
 .rf-rankbtn:active { transform: translate(-50%,-50%) scale(0.97); }
 
 /* 대표 카페 */
-.rf-cafe { top: 83.5%; left: 15.5%; width: 69%; }
+.rf-cafe { top: 81.35%; left: 15.5%; width: 69%; }
 .rf-cafe-title { text-align: center; font-weight: 800; font-size: 3.5cqw; color: var(--orange-dk); padding-bottom: 0.6cqw; margin-bottom: 0.8cqw; }
 .rf-cafe-list { display: flex; flex-direction: column; }
 .rf-cafe-row { display: flex; align-items: baseline; gap: 2cqw; padding: 0.8cqw 0; border-bottom: 1px dashed rgba(74,52,33,0.14); }
@@ -1151,7 +1152,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .rf-cafe-m { font-size: 2.85cqw; color: #8A7159; }
 
 /* 주문 버튼 — 컬러/두께를 순위보기 버튼과 동일하게 (orange-dk, 800, pill) · 베이크된 카페 카드(하단 89.4%) 아래로 */
-.rf-order { top: 94.3%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; color: var(--orange-dk); font-weight: 800; border: 2px solid var(--orange); border-radius: 999px; box-shadow: var(--sh-soft); font-size: 4.2cqw; padding: 3cqw 0; }
+.rf-order { top: 92.6%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; color: var(--orange-dk); font-weight: 800; border: 2px solid var(--orange); border-radius: 999px; box-shadow: var(--sh-soft); font-size: 4.2cqw; padding: 3cqw 0; }
 
 /* 다시하기 — 주문하기 버튼 바로 아래 */
-.rf-again { top: 97%; left: 50%; transform: translate(-50%,-50%); width: 84%; justify-content: center; }
+.rf-again { top: 96.4%; left: 50%; transform: translate(-50%,-50%); width: 84%; justify-content: center; }
