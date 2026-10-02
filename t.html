@@ -9,14 +9,15 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="내 가을 한 잔에 토핑 한 스푼 🥄" />
   <meta property="og:description" content="토핑 하나만 골라주면 우리 가을 궁합 점수가 나와요!" />
-  <meta property="og:image" content="https://cdn.jsdelivr.net/gh/paytalab-m/fall-drinks@main/assets/og/og-topping-1200x630.png" />
+  <meta property="og:image" content="https://fall-mood.netlify.app/assets/og/og-topping-1200x630.png" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <!-- OG만 보여주고 실제 앱(b-start)으로 즉시 이동. 쿼리(ownerId·baseDrink) → 해시로 전달 -->
   <script>
     (function () {
       var q = location.search.replace(/^\?/, '');
-      var app = 'https://paytalab-m.github.io/fall-drinks/#b-start' + (q ? '?' + q : '');
+      // 같은 사이트의 앱(index)으로 이동 — 도메인 노출 통일(fall-mood)
+      var app = 'index.html#b-start' + (q ? '?' + q : '');
       location.replace(app);
     })();
   </script>
@@ -30,7 +31,7 @@
 <body>
   <p>🍂 가을 한 잔으로 이동 중…</p>
   <noscript>
-    <a href="https://paytalab-m.github.io/fall-drinks/#b-start">여기를 눌러 이동하세요</a>
+    <a href="index.html#b-start">여기를 눌러 이동하세요</a>
   </noscript>
 </body>
 </html>

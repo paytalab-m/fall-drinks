@@ -579,11 +579,17 @@ function renderAStart(app) {
     <div class="page rpage">
       <div class="start-skin">
         <img class="skin-bg" src="${assetURL('assets/result-skins/start-skin-poster-blank-v4-1962.png')}" alt="" />
-        <div class="ss-pretitle">900만 카페 유저와 함께하는</div>
-        <div class="ss-title">가을 감수성<br/>테스트</div>
-        <div class="ss-drink ss-char" id="ssDrink"><img src="${charSrc(cycle[0])}" alt="" /></div>
-        <div class="ss-precta"><span class="ss-meme">"난 ㄱㅏ끔… 가을을 탄ㄷㅏ…🍂"</span>9개의 질문으로 알아보는<br/>나의 가을 감수성과 어울리는 한 잔.</div>
-        <button class="ss-cta" id="startBtn">🍁 가을 감성 지수 알아보기</button>
+        <div class="ss-stack">
+          <div class="ss-head">
+            <div class="ss-pretitle">900만 카페 유저와 함께하는</div>
+            <div class="ss-title">가을 감수성<br/>테스트</div>
+          </div>
+          <div class="ss-drink ss-char" id="ssDrink"><img src="${charSrc(cycle[0])}" alt="" /></div>
+          <div class="ss-foot">
+            <div class="ss-precta"><span class="ss-meme">"난 ㄱㅏ끔… 가을을 탄ㄷㅏ…🍂"</span>9개의 질문으로 알아보는<br/>나의 가을 감수성과 어울리는 한 잔.</div>
+            <button class="ss-cta" id="startBtn">🍁 가을 감성 지수 알아보기</button>
+          </div>
+        </div>
       </div>
     </div>`;
   // 결과 다람쥐 이미지 루프 (b시작 룰렛과 동일 방식)
@@ -890,9 +896,9 @@ function fitOneLine(el, maxPx, minPx) {
 
 // 공유 링크: A 결과판(#a-result)으로 진입 → 본인은 자기 결과 재확인(앱 재진입 불가 대응),
 // 친구는 A 순위판 + "나도 토핑 추가하기" CTA를 봄. 순위판은 ownerId로 서버에서 로드(브라우저 무관).
-const SHARE_BASE = 'https://passorder.kr/fall-drinks';
+const SHARE_BASE = 'https://fall-mood.netlify.app';  // 공유 링크 도메인 = 중립(패스오더/깃허브 비노출)
 // 토핑요청 전용 랜딩(토핑 OG) → 열리면 b-start로 리다이렉트. 테스트 공유와 OG 분리용.
-const TOPPING_LANDING = 'https://autumn-topping.netlify.app/t.html';
+const TOPPING_LANDING = 'https://fall-mood.netlify.app/t.html';
 function shareUrlForResult(ownerId, baseDrink) {
   // 공유 링크 착지 = 토핑 랜딩(t.html) → b-start(토핑 뽑기). 본인(A)은 상단 '순위판 보기'로 결과 재열람.
   return `${TOPPING_LANDING}?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
