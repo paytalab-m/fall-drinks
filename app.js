@@ -532,7 +532,8 @@ function postResult(ownerId, baseDrink) {
 // 화면 도달 로그(퍼널·이탈). role은 단계 접두사로 판별. nick = 행동한 사람(A/친구) 닉
 function logStep(step, ownerId, nick) {
   sheetPost_({ type: 'step', vid: getVid(), role: (step && step[0] === 'b') ? 'B' : 'A',
-    owner_id: ownerId || '', nick: nick || session.nick || '', step: step, user_identifier: session.uid || '' });
+    owner_id: ownerId || '', nick: nick || session.nick || '', step: step, user_identifier: session.uid || '',
+    entry: session.entry || 'direct' });  // 채널(유입경로) — 진입수·이탈 채널별 집계용
 }
 // 버튼 플래그 (tab='result'|'join')
 function flagClick(tab, field, ownerId) {
