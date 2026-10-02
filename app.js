@@ -866,7 +866,9 @@ function renderAResult(app, p) {
   });
   app.querySelector('#shareTestBtn')?.addEventListener('click', () => {
     flagClick('result', '테스트공유클릭', ownerId);
-    shareContent(`🍂 나 얼마나 가을 타? · 가을 감수성 테스트\n9문항으로 보는 내 가을 감성 지수와 어울리는 한 잔 🐿️\n${SHARE_BASE}`);
+    // 재공유 추적: utm_source=share → 받는 쪽 entry='share' (바이럴 유입 구분 + K-factor 집계)
+    const testUrl = `${SHARE_BASE}/?utm_source=share&utm_medium=viral&utm_campaign=fall_mood_2026`;
+    shareContent(`🍂 나 얼마나 가을 타? · 가을 감수성 테스트\n9문항으로 보는 내 가을 감성 지수와 어울리는 한 잔 🐿️\n${testUrl}`);
   });
   app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderPass('a', aNick, drinkKeyword(d.name), d.name); });
   app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
