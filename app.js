@@ -75,7 +75,7 @@ function blend(baseId, toppingId) {
 // 블렌드 결과 이미지 (미리 제작한 조합 이미지)
 // 자산 경로 → 단독HTML이면 인라인 data URI, 멀티파일이면 원본 경로
 // (JS에서 동적으로 .src 대입하는 경우 빌드 정규식이 못 잡으므로 이걸로 감싼다)
-const IMG_BASE = 'https://cdn.jsdelivr.net/gh/paytalab-m/fall-drinks@main/'; // 이미지 CDN(webp). 개발 시 ''로 두면 로컬 webp 서빙
+const IMG_BASE = '';  // ⚠️ 로컬확인용 임시 — 배포 전 CDN URL로 복구 // 이미지 CDN(webp). 개발 시 ''로 두면 로컬 webp 서빙
 function assetURL(p) {
   if (typeof A === 'function' && window.__A) return A(p);        // 단일파일 빌드(인라인 data URI)
   const webp = p.replace(/^[./]+/, '').replace(/\.png(\?[^"']*)?$/i, '.webp');
@@ -573,92 +573,79 @@ window.orderHomeMock = orderHomeMock;
 
 /* ---------------- #a-start · 시작 스킨 (일러스트 baked-in) ---------------- */
 function renderAStart(app) {
-  const cycle = Object.keys(DRINKS); // 결과로 나올 12종 베이스 음료(중앙에서 루프)
+  const cycle = GAEUL_TYPES.map(t => t.char).filter(Boolean); // 결과 다람쥐 8종(중앙에서 루프)
+  const charSrc = f => assetURL('assets/result-characters/' + f);
   app.innerHTML = `
     <div class="page rpage">
       <div class="start-skin">
         <img class="skin-bg" src="${assetURL('assets/result-skins/start-skin-poster-blank-v4-1962.png')}" alt="" />
-        <div class="ss-pretitle">900만 카페 유저의 취향을 담아 만든</div>
-        <div class="ss-title">가을 음료<br/>취향 테스트</div>
-        <div class="ss-sub">12가지 음료 유형 중 내 취향은?</div>
-        <div class="ss-drink" id="ssDrink"><img src="${assetURL('assets/drinks/' + cycle[0] + '.png')}" alt="" /></div>
-        <div class="ss-precta">7문항 · 30초면 끝</div>
-        <button class="ss-cta" id="startBtn">🍁 내 가을 음료 찾기</button>
+        <div class="ss-pretitle">900만 카페 유저와 함께하는</div>
+        <div class="ss-title">가을 감수성<br/>테스트</div>
+        <div class="ss-drink ss-char" id="ssDrink"><img src="${charSrc(cycle[0])}" alt="" /></div>
+        <div class="ss-precta"><span class="ss-meme">"난 ㄱㅏ끔… 가을을 탄ㄷㅏ…🍂"</span>9개의 질문으로 알아보는<br/>나의 가을 감수성과 어울리는 한 잔.</div>
+        <button class="ss-cta" id="startBtn">🍁 가을 감성 지수 알아보기</button>
       </div>
     </div>`;
-  // 결과 음료 이미지 루프 (b시작 룰렛과 동일 방식)
+  // 결과 다람쥐 이미지 루프 (b시작 룰렛과 동일 방식)
   let i = 0;
   const el = app.querySelector('#ssDrink img');
   if (startCycle) clearInterval(startCycle);
-  startCycle = setInterval(() => { i = (i + 1) % cycle.length; el.src = assetURL('assets/drinks/' + cycle[i] + '.png'); }, 550);
+  startCycle = setInterval(() => { i = (i + 1) % cycle.length; el.src = charSrc(cycle[i]); }, 650);
   app.querySelector('#startBtn').addEventListener('click', () => {
     if (startCycle) { clearInterval(startCycle); startCycle = null; }
-    quizState = { step: 0, answers: {}, group: null, q6: null };
+    quizState = { step: 0, sens: 0 };
     navigate('a-quiz');
   });
 }
 
 /* ---------------- #a-quiz · Q1~Q7 (프롤로그 제거, Q1에 스토리 결합) ---------------- */
 // 순서: Q1~Q5, Q6(동적), Q7 = 7스텝 → 마지막에 닉네임 입력 → 결과
-let quizState = { step: 0, answers: {}, group: null, q6: null };
-const QUIZ_STEPS = 7;
+let quizState = { step: 0, sens: 0 };
+const QUIZ_STEPS = GAEUL_Q.length; // 9
 
 function renderAQuiz(app) {
   renderQuizStep(app);
 }
 
+// 가을 감성 지수 진단: 감성 선택 수 → 지수(%) → 8유형
+function diagnoseGaeul(sensScore) {
+  const score = Math.max(0, Math.min(100, Math.round(sensScore))); // 이미 0~100 가중합
+  let idx = GAEUL_TYPES.findIndex(t => score >= t.min && score <= t.max);
+  if (idx < 0) idx = GAEUL_TYPES.length - 1;
+  return { score, typeIdx: idx, type: GAEUL_TYPES[idx] };
+}
+
 function renderQuizStep(app) {
   const s = quizState.step;
-  const pct = Math.round(((s + 1) / QUIZ_STEPS) * 100);
+  const total = GAEUL_Q.length;
+  const pct = Math.round(((s + 1) / total) * 100);
+  const item = GAEUL_Q[s];
+  const isLast = (s === total - 1);
 
-  // 스텝 → 문항 결정 (+ 씬 이미지 key/emoji)
-  let q, opts, key, kind, sceneKey, sceneEmoji;
-  if (s <= 4) {
-    // Q1~Q5 (QUIZ.questions[0..4])
-    const item = QUIZ.questions[s];
-    key = item.key; q = item.q; opts = item.opts; kind = item.scored ? 'scored' : 'flavor';
-    sceneKey = item.key.toLowerCase(); sceneEmoji = item.scene;
-  } else if (s === 5) {
-    // Q6 · 취향군 확정 후 2택
-    const group = diagnoseGroup(quizState.answers).group;
-    quizState.group = group;
-    const g6 = GROUP_Q6[group];
-    key = 'Q6'; q = g6.q; opts = [g6.a.label, g6.b.label]; kind = 'q6';
-    sceneKey = `q6-${group}`; sceneEmoji = g6.scene;
-  } else {
-    // Q7 (QUIZ.questions[5])
-    const item = QUIZ.questions[5];
-    key = item.key; q = item.q; opts = item.opts; kind = 'flavor';
-    sceneKey = item.key.toLowerCase(); sceneEmoji = item.scene;
-  }
-
-  const isLast = (s === QUIZ_STEPS - 1);
   app.innerHTML = `
     <div class="page qpage">
       <div class="progress"><span style="width:${pct}%"></span></div>
-      <div class="step-count">${s + 1} <span class="muted">/ ${QUIZ_STEPS}</span></div>
-      ${sceneSlot(sceneKey, sceneEmoji)}
-      <div class="question">${q}</div>
+      <div class="step-count">${s + 1} <span class="muted">/ ${total}</span></div>
+      <div class="q-scene"><img src="${assetURL('assets/quiz/q' + (s + 1) + '.png')}" alt="" onerror="this.parentNode.outerHTML='<div class=\\'q-emoji\\'>${item.emoji || '🍂'}</div>'"/></div>
+      <div class="question">${item.q}</div>
       <div class="options">
-        ${opts.map((o, i) => `<button class="option" data-i="${i}">${o}</button>`).join('')}
+        <button class="option" data-k="a">${item.a}</button>
+        <button class="option" data-k="b">${item.b}</button>
       </div>
     </div>`;
 
   logStep('a-quiz-' + (s + 1), session.ownerId, session.nick); // 문항별 이탈 측정
 
-  if (isLast) {
-    // 마지막 문항(Q7): 답 선택 → 닉네임 입력 팝업
-    app.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
-      app.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+  app.querySelectorAll('.option').forEach(btn => btn.addEventListener('click', () => {
+    if (btn.dataset.k === item.sens) quizState.sens = (quizState.sens || 0) + (item.w || 0); // sens = 가중치 누적합(0~100)
+    if (isLast) {
       btn.classList.add('selected');
-      quizState.answers[key] = Number(btn.dataset.i);
       nickModal(nick => { session.nick = nick; session.ownerId = getOrCreateOwnerId(nick); finishQuiz(); });
-    }));
-  } else {
-    app.querySelectorAll('.option').forEach(btn => {
-      btn.addEventListener('click', () => onQuizAnswer(key, kind, Number(btn.dataset.i)));
-    });
-  }
+    } else {
+      quizState.step++;
+      renderQuizStep(app);
+    }
+  }));
 }
 
 // 닉네임 입력 팝업 (Q7 답 선택 후) — 하단에 있던 입력·랜덤·확인 버튼을 그대로 모달로
@@ -699,30 +686,29 @@ function onQuizAnswer(key, kind, idx) {
 }
 
 function finishQuiz() {
-  const group = quizState.group ?? diagnoseGroup(quizState.answers).group;
-  const baseDrink = resolveDrink(group, quizState.q6 || 'a');
+  const { score, typeIdx, type } = diagnoseGaeul(quizState.sens || 0);
+  const baseDrink = type.drink;
   const ownerId = getOrCreateOwnerId(session.nick);
-  session.group = group; session.baseDrink = baseDrink;
-  LS.set('passorder_a_done', { ownerId, baseDrink }); // 재방문 시 다시하기 전까지 결과 유지
+  session.baseDrink = baseDrink; session.score = score; session.typeIdx = typeIdx;
+  LS.set('passorder_a_done', { ownerId, baseDrink, score, typeIdx }); // 재방문 시 유지
   postResult(ownerId, baseDrink); // 내 결과 저장(원격 시트)
 
-  // 결과 화면 이미지 미리로드(로딩 1.6s 동안) → 결과 도달 시 즉시 표시
   preloadImg(`assets/drinks/${baseDrink}.png`);
-  preloadImg('assets/result-skins/result-skin-blank-v20-large-cards-adjusted.png');
 
-  // 로딩 화면 → 결과
+  // 로딩 화면(메인과 동일 다람쥐 루프, 작게) → 결과
   const app = document.getElementById('app');
+  const loadChars = GAEUL_TYPES.map(t => t.char).filter(Boolean);
+  const loadCharSrc = f => assetURL('assets/result-characters/' + f);
   app.innerHTML = `
     <div class="page center" style="justify-content:center">
-      <div class="loader-frames">
-        <img src="${assetURL('assets/loading/1.png')}" alt="" />
-        <img src="${assetURL('assets/loading/2.png')}" alt="" />
-        <img src="${assetURL('assets/loading/3.png')}" alt="" />
-      </div>
-      <h1 class="headline title-font">분석중…</h1>
-      <div class="muted">${session.nick}님의 가을 한 잔을 찾고 있어요</div>
+      <div class="load-char"><img id="loadChar" src="${loadCharSrc(loadChars[0])}" alt="" /></div>
+      <h1 class="headline title-font">측정중…</h1>
+      <div class="muted">${session.nick}님의 가을 감성 지수를 재는 중 🍂</div>
     </div>`;
-  setTimeout(() => navigate('a-result', { ownerId, baseDrink }), 1600);
+  let li = 0;
+  const lel = app.querySelector('#loadChar');
+  const loadTimer = setInterval(() => { li = (li + 1) % loadChars.length; lel.src = loadCharSrc(loadChars[li]); }, 650);
+  setTimeout(() => { clearInterval(loadTimer); navigate('a-result', { ownerId, baseDrink, score, typeIdx }); }, 1600);
 }
 
 /* ---------------- #a-result · 12종 결과 ---------------- */
@@ -746,9 +732,12 @@ function renderAResult(app, p) {
   // owner=1 → b-start '순위판 보기'로 진입 = 내 결과판(공유 버튼) 뷰로 강제
   const isOwner = ((LS.get('passorder_a_done') || {}).ownerId === ownerId) || p.owner === '1';
 
-  // 일러스트 스킨(result-skin-blank) 슬롯을 PIL로 실측한 좌표(%)에 텍스트를 얹음
-  const TAG_X = [22.0, 40.7, 59.3, 78.0]; // v12 pill 중심 x% (정밀 실측)
-  const tags = d.tags.map((t, i) => `<span class="rf-tag" style="left:${TAG_X[i]}%">#${t}</span>`).join('');
+  // 가을 감성 지수·유형 (p 또는 LS에서 복원. 유형은 음료와 1:1이라 음료로도 복구)
+  const done = LS.get('passorder_a_done') || {};
+  const score = Number(p.score != null ? p.score : done.score) || 0;
+  let typeIdx = (p.typeIdx != null ? Number(p.typeIdx) : (done.typeIdx != null ? Number(done.typeIdx) : -1));
+  if (typeIdx < 0) typeIdx = GAEUL_TYPES.findIndex(t => t.drink === baseDrink);
+  const type = GAEUL_TYPES[typeIdx] || GAEUL_TYPES.find(t => t.drink === baseDrink) || GAEUL_TYPES[0];
 
   // 순위판: 참여자 있으면 랭킹, 없으면 "채워지는 구조" 미리보기 스켈레톤 (노멀 플로우 행)
   const board = getBoard(ownerId).slice().sort((a, b) => b.score - a.score);
@@ -761,7 +750,8 @@ function renderAResult(app, p) {
         return rankRow(['🥇', '🥈', '🥉'][i], tp ? toppingImg(tp) : '', e.bnick, e.blendName, e.score, arc, e.score === 100 ? ' is-100' : '');
       }).join('')}</div>${board.length > 3 ? `<div class="ex-more" onclick="location.hash='a-board?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}'">전체 ${board.length}명 순위 보기 ›</div>` : ''}`
     : `<div class="ex-rows ex-preview" aria-hidden="true">${[['🥇', '김시럽', '크림'], ['🥈', '강토핑', '꿀'], ['🥉', '최크림', '대파']]
-        .map(([m, nm, top]) => rankRow(m, '🍯', nm, `${top}${d.name}`, '?', '', ' is-skeleton')).join('')}</div>`;
+        .map(([m, nm, top]) => rankRow(m, '🍯', nm, `${top}${d.name}`, '?', '', ' is-skeleton')).join('')}</div>
+       <div class="rr-rank-empty">아직 아무도 토핑을 안 더했어요 😶<br/><b>친구가 참여하면 여기 순위에 떠요!</b></div>`;
 
   const bw = bestWorstTopping(baseDrink);
   const bestB = bw ? blend(baseDrink, bw.best.t) : null;
@@ -773,61 +763,78 @@ function renderAResult(app, p) {
   const cafeRows = d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rv2-cafe-row"><span class="rv2-cafe-b">${b}</span><span class="rv2-cafe-m">${m}</span></div>`; }).join('');
 
   app.innerHTML = `
-    <div class="page rpage">
-      <div class="result-full">
-        <img class="skin-bg" src="${assetURL('assets/result-skins/result-skin-blank-v20-large-cards-adjusted.png')}" alt="" />
+    <div class="page rr">
+      <!-- 결과 섹션: 유형 + 음료 + 캡쳐 안내 (내부 타이트) -->
+      <section class="rr-sec">
+        <div class="rr-badge">🍁 ${aNick}님의 가을 감성 지수</div>
+        <section class="rr-card rr-main">
+          <div class="rr-gauge">${score}<span>%</span></div>
+          <h1 class="rr-typename title-font">${type.name}</h1>
+          <div class="rr-oneliner">"${type.oneLiner}"</div>
+          <div class="rr-squirrel">${type.char
+            ? `<img class="rr-char-img" src="${assetURL('assets/result-characters/' + type.char)}" alt="${type.name}" onerror="this.parentNode.innerHTML='<span class=\\'rr-sq-emoji\\'>🐿️</span>'"/>`
+            : `<span class="rr-sq-emoji">🐿️</span><span class="rr-sq-note">${d.emoji} 캐릭터 준비중</span>`}</div>
+          <ul class="rr-points">${type.traits.map(t => `<li>${t}</li>`).join('')}</ul>
+          <div class="rr-capture">📸 캡쳐해서 친구들에게 공유해보세요</div>
+        </section>
+        <section class="rr-card rr-drinkrec">
+          <div class="rr-drinkrec-label">🍂 내 감성 지수에 어울리는 가을 한 잔</div>
+          <div class="rr-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
+               onerror="this.replaceWith(document.createTextNode('${d.emoji}'))" /></div>
+          <div class="rr-drinkrec-name">${d.emoji} ${d.name}</div>
+          <div class="rr-drinkrec-reason">${type.drinkReason}</div>
+        </section>
+      </section>
 
-        <!-- 메인 결과 카드 -->
-        <div class="rf-badge">🍁 ${aNick}님의 가을 음료 취향은?</div>
-        <span class="rf-title">${d.name}</span>
-        <div class="rf-subtitle">${d.shortCopy}</div>
-        <div class="rf-drink"><img src="${assetURL(`assets/drinks/${d.id}.png`)}" alt="${d.name}"
-             onerror="this.replaceWith(document.createTextNode('${d.emoji}'))" /></div>
-        ${tags}
-        <div class="rf-why">${d.why}</div>
-
-        <!-- 2열 궁합 카드 위 카피 -->
-        <div class="rf-copy1"><b>${d.name}</b>에 다양한 <b>토핑</b>을 조합해 볼 수 있어요!</div>
-
-        <!-- 최고 / 최악 토핑 궁합 카드 -->
-        <div class="rf-card rf-card-l">
-          <div class="rf-card-title">💚 최고의 궁합</div>
-          <div class="rf-card-img">${bestB ? `<img src="${blendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
-          <div class="rf-card-name">${bestB ? bestB.blendName : '-'}</div>
-          <div class="rf-card-score" style="color:var(--orange)">${bestB ? bestB.score + '%' : ''}</div>
-        </div>
-        <div class="rf-card rf-card-r">
-          <div class="rf-card-title">⚡ 최악의 궁합</div>
-          <div class="rf-card-img">${worstB ? `<img src="${blendImg(baseDrink, bw.worst.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
-          <div class="rf-card-name">${worstB ? worstB.blendName : '-'}</div>
-          <div class="rf-card-score" style="color:var(--maple)">${worstB ? worstB.score + '%' : ''}</div>
-        </div>
-
-        <!-- 친구 토핑 선택 안내 + 토핑 롤링 -->
-        <div class="rf-friend">친구가 <b>${nTop}가지 토핑</b> 중 하나를 골라주면<br/>우리 취향 궁합 점수가 완성돼요!</div>
-        <div class="rf-marquee"><div class="rf-marquee-track">${marqueeImgs}${marqueeImgs}</div></div>
-
-        <!-- 토핑 요청(공유) 버튼 -->
-        <button class="rf-share btn btn-cta3d" id="shareBtn">${isOwner ? '🔗 친구에게 토핑 받기' : `🎡 나도 ${aNick}님 음료에 토핑 추가하기`}</button>
-
-        <!-- 친구와의 토핑 궁합 순위 -->
-        <div class="rf-rank">
-          <div class="rf-rank-title">🏆 친구와의 토핑 궁합</div>
-          ${blendBox}
-          ${refreshBlock('skin')}
-        </div>
-        <button class="rf-rankbtn" id="rankViewBtn">전체 순위 보기 ›</button>
-
-        <!-- 대표 카페 -->
-        <div class="rf-cafe">
-          <div class="rf-cafe-title">이 음료 파는 대표 카페</div>
-          <div class="rf-cafe-list">
-            ${d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rf-cafe-row"><span class="rf-cafe-b">${b}</span><span class="rf-cafe-m">${m}</span></div>`; }).join('')}
+      <!-- 토핑 섹션: 제안 → 궁합 미리보기 → 안내 → 롤링 → 공유 (내부 타이트) -->
+      <section class="rr-sec">
+        <div class="rr-sectitle">내 가을 한 잔, <b>토핑으로 잔꾸하기</b></div>
+        <div class="rr-combo">
+          <div class="rr-combo-card">
+            <div class="rr-combo-h best">💚 최고의 궁합</div>
+            <div class="rr-combo-img">${bestB ? `<img src="${blendImg(baseDrink, bw.best.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
+            <div class="rr-combo-name">${bestB ? bestB.blendName : '-'}</div>
+            <div class="rr-combo-score" style="color:var(--orange)">${bestB ? bestB.score + '%' : ''}</div>
+          </div>
+          <div class="rr-combo-card">
+            <div class="rr-combo-h worst">⚡ 최악의 궁합</div>
+            <div class="rr-combo-img">${worstB ? `<img src="${blendImg(baseDrink, bw.worst.t)}" alt="" onerror="this.style.visibility='hidden'"/>` : ''}</div>
+            <div class="rr-combo-name">${worstB ? worstB.blendName : '-'}</div>
+            <div class="rr-combo-score" style="color:var(--maple)">${worstB ? worstB.score + '%' : ''}</div>
           </div>
         </div>
-        <button class="rf-order btn" id="aOrderBtn">🛒 ${d.name} 주문하기</button>
-        ${isOwner ? '<button class="btn btn-ghost rf-again" id="aAgainBtn">🔄 다시 하기</button>' : ''}
+        <div class="rr-friend">친구가 토핑으로 내 가을 한 잔 꾸며주면<br/><b>궁합 점수</b>가 뜨고, <b>순위판</b>에도 올라가요 👇</div>
+        <div class="rr-marquee"><div class="rf-marquee-track">${marqueeImgs}${marqueeImgs}</div></div>
+        ${isOwner
+          ? `<button class="btn rr-btn rr-btn-kakao" id="shareBtn">💬 카톡으로 친구에게 토핑 받기</button>
+             <button class="btn btn-cta3d rr-btn rr-btn-pair" id="shareTestBtn">🔗 가을 감수성 테스트 공유하기</button>`
+          : `<button class="btn btn-cta3d rr-btn" id="shareBtn">🎡 나도 ${aNick}님 가을 한 잔에 토핑 더하기</button>`}
+      </section>
+
+      <!-- 순위 섹션 (내부 타이트) -->
+      <section class="rr-sec">
+        <section class="rr-card rr-rank">
+          <div class="rr-rank-title">🏆 친구들이 더해준 토핑</div>
+          ${blendBox}
+          ${refreshBlock('skin')}
+        </section>
+        <button class="btn rr-btn rr-btn-outline" id="rankViewBtn">전체 순위 보기 ›</button>
+      </section>
+
+      <!-- 대표 카페 -->
+      <section class="rr-card rr-cafe">
+        <div class="rr-cafe-title">${d.name} 파는 대표 카페</div>
+        <div class="rr-cafe-list">
+          ${d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rr-cafe-row"><span class="rr-cafe-b">${b}</span><span class="rr-cafe-m">${m}</span></div>`; }).join('')}
+        </div>
+      </section>
+
+      <!-- 주문 (맨 아래) -->
+      <div class="rr-orderwrap">
+        <div class="rr-orderhint">첫 주문이면 아메리카노 100원! ☕️</div>
+        <button class="btn rr-btn rr-btn-order" id="aOrderBtn">🛒 ${d.name} 파는 곳 보기</button>
       </div>
+      ${isOwner ? '<button class="btn btn-ghost rr-btn rr-again" id="aAgainBtn">🔄 다시 하기</button>' : ''}
     </div>`;
 
   app.querySelector('#rankRefreshBtn').addEventListener('click', () => refreshBoard(ownerId));
@@ -846,10 +853,14 @@ function renderAResult(app, p) {
     if (isOwner) { // 본인: 친구 초대(결과판 링크 공유)
       flagClick('result', '공유클릭', ownerId);
       const url = shareUrlForResult(ownerId, baseDrink);
-      shareContent(`🍁 ${aNick}님의 가을 음료 취향 결과예요!\n어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 단, 3초면 완료!\n${url}`);
+      shareContent(`🍁 ${aNick}님의 가을 한 잔, 토핑으로 잔꾸해줘!\n토핑 하나만 고르면 우리 가을 궁합 점수가 나와요. 3초면 끝 🥄\n${url}`);
     } else { participate(); }
   });
-  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderMock(drinkKeyword(d.name), aNick, d.name); });
+  app.querySelector('#shareTestBtn')?.addEventListener('click', () => {
+    flagClick('result', '테스트공유클릭', ownerId);
+    shareContent(`🍂 나 얼마나 가을 타? · 가을 감수성 테스트\n9문항으로 보는 내 가을 감성 지수와 어울리는 한 잔 🐿️\n${SHARE_BASE}`);
+  });
+  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderPass('a', aNick, drinkKeyword(d.name), d.name); });
   app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
     const reset = () => {
       flagClick('result', '다시하기클릭', ownerId);
@@ -880,9 +891,11 @@ function fitOneLine(el, maxPx, minPx) {
 // 공유 링크: A 결과판(#a-result)으로 진입 → 본인은 자기 결과 재확인(앱 재진입 불가 대응),
 // 친구는 A 순위판 + "나도 토핑 추가하기" CTA를 봄. 순위판은 ownerId로 서버에서 로드(브라우저 무관).
 const SHARE_BASE = 'https://passorder.kr/fall-drinks';
+// 토핑요청 전용 랜딩(토핑 OG) → 열리면 b-start로 리다이렉트. 테스트 공유와 OG 분리용.
+const TOPPING_LANDING = 'https://autumn-topping.netlify.app/t.html';
 function shareUrlForResult(ownerId, baseDrink) {
-  // 공유 링크 착지 = b-start(토핑 뽑기). 본인(A)은 상단 '순위판 보기'로 결과 재열람.
-  return `${SHARE_BASE}#b-start?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
+  // 공유 링크 착지 = 토핑 랜딩(t.html) → b-start(토핑 뽑기). 본인(A)은 상단 '순위판 보기'로 결과 재열람.
+  return `${TOPPING_LANDING}?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
 }
 // 순위판(a-board) 공유 URL
 function shareUrlForBoard(ownerId, baseDrink) {
@@ -1204,7 +1217,7 @@ function renderABoard(app, p) {
   app.querySelector('#rankRefreshBtn')?.addEventListener('click', () => refreshBoard(ownerId));
   app.querySelector('#boardShareBtn').addEventListener('click', () => {
     const url = shareUrlForResult(ownerId, baseDrink);
-    shareContent(`🍁 ${aNick}님의 가을 음료 취향 결과예요!\n어울리는 토핑 하나만 골라주시면 우리 취향 궁합 점수가 바로 나와요. 단, 3초면 완료!\n${url}`);
+    shareContent(`🍁 ${aNick}님의 가을 한 잔에 토핑 한 스푼 더해줘!\n토핑 하나만 골라주면 나의 가을 한 잔이 완성돼요. 3초면 끝!\n${url}`);
   });
 }
 

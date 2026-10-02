@@ -388,6 +388,10 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .loader-frames img:nth-child(3) { animation-delay: 0.5s; }
 @keyframes loaderCycle { 0%, 33.33% { opacity: 1; } 33.34%, 100% { opacity: 0; } }
 
+/* 로딩 다람쥐 (메인 애니메이션 축소판) */
+.load-char { width: 150px; height: 150px; margin: 0 auto 12px; }
+.load-char img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 12px rgba(74,52,33,0.22)); }
+
 /* ---------- 진행 바 ---------- */
 .progress { height: 10px; background: var(--paper-dk); border-radius: var(--pill); overflow: hidden; box-shadow: inset 0 1px 3px rgba(74,52,33,0.10); }
 .progress > span { display: block; height: 100%; background: var(--orange); border-radius: var(--pill); transition: width .3s ease; }
@@ -397,7 +401,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .question {
   text-align: center; font-family: 'Jalnan','Pretendard',sans-serif; font-weight: 700;
   font-size: clamp(18px, 2.5vh, 21px); line-height: 1.4; color: var(--ink);
-  margin: 30px 0 4px; word-break: keep-all;
+  margin: 30px 0 4px; word-break: keep-all; text-wrap: pretty;
 }
 .prologue {
   background: var(--card); border: 1.5px dashed var(--gold);
@@ -412,7 +416,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
   text-align: center; width: 100%;
   padding: 16px; border: 2px solid #D9BE94; border-radius: var(--radius-sm);
   background: var(--card); color: var(--ink); font-family: inherit; font-size: 15.5px; font-weight: 700;
-  line-height: 1.4; cursor: pointer;
+  line-height: 1.4; cursor: pointer; word-break: keep-all; text-wrap: pretty;
   box-shadow: 0 4px 12px rgba(74,52,33,0.12);
   transition: transform .1s, box-shadow .15s, background .12s, border-color .12s;
 }
@@ -772,9 +776,13 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 }
 .ss-drink img { width: 100%; height: auto; filter: drop-shadow(0 8px 12px rgba(74,52,33,0.22)); }
 .ss-precta {
-  bottom: 16.5%; left: 50%; transform: translateX(-50%);
-  font-weight: 700; font-size: 3.4cqw; color: #8A6A4A; white-space: nowrap;
-  text-shadow: none;
+  bottom: 14.5%; left: 50%; transform: translateX(-50%); width: 88%;
+  font-weight: 700; font-size: 3.3cqw; color: #8A6A4A; white-space: normal;
+  text-align: center; line-height: 1.5; text-shadow: none; word-break: keep-all; text-wrap: pretty;
+}
+.ss-meme {
+  display: block; margin-bottom: 1.6cqw;
+  font-family: 'Jalnan','Pretendard',sans-serif; font-size: 4.3cqw; color: var(--maple);
 }
 
 /* ===== 닉네임 입력 화면(결과 직전) ===== */
@@ -1133,8 +1141,10 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 
 /* 토핑 요청(공유) 버튼 */
 .rf-share-hint { top: 49.5%; left: 50%; transform: translate(-50%,-50%); width: 96%; text-align: center; font-size: 3.35cqw; font-weight: 700; color: #6E4A2B; white-space: nowrap; }
-.rf-share { top: 58.4%; left: 50%; transform: translate(-50%,-50%); width: 84%; font-size: 4cqw; padding: 3.2cqw 0; justify-content: center; }
+.rf-share { top: 56.6%; left: 50%; transform: translate(-50%,-50%); width: 84%; font-size: 3.7cqw; padding: 2.8cqw 0; justify-content: center; }
 .rf-share:active { transform: translate(-50%,-50%) translateY(3px); }
+.rf-share2 { top: 61.0%; left: 50%; transform: translate(-50%,-50%); width: 84%; font-size: 3.7cqw; padding: 2.8cqw 0; justify-content: center; }
+.rf-share2:active { transform: translate(-50%,-50%) translateY(3px); }
 
 /* 친구와의 토핑 궁합 순위 카드 */
 .rf-rank { top: 64.3%; left: 13%; width: 74%; max-height: 10.5%; overflow: hidden; }
@@ -1152,7 +1162,101 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .rf-cafe-m { font-size: 2.85cqw; color: #8A7159; }
 
 /* 주문 버튼 — 컬러/두께를 순위보기 버튼과 동일하게 (orange-dk, 800, pill) · 베이크된 카페 카드(하단 89.4%) 아래로 */
+.rf-orderhint { top: 91.4%; left: 50%; transform: translate(-50%,-50%); background: var(--orange); color: #fff; font-weight: 800; font-size: 3.2cqw; padding: 1.8cqw 3.6cqw; border-radius: 999px; white-space: nowrap; box-shadow: var(--sh-soft); }
+.rf-orderhint::after { content: ""; position: absolute; left: 50%; bottom: -1.4cqw; transform: translateX(-50%); border: 1.5cqw solid transparent; border-top-color: var(--orange); border-bottom: 0; }
 .rf-order { top: 94.8%; left: 50%; transform: translate(-50%,-50%); width: 84%; background: #fff; color: var(--orange-dk); font-weight: 800; border: 2px solid var(--orange); border-radius: 999px; box-shadow: var(--sh-soft); font-size: 4.2cqw; padding: 3cqw 0; }
 
 /* 다시하기 — 주문하기 버튼 바로 아래 */
 .rf-again { top: 97.3%; left: 50%; transform: translate(-50%,-50%); width: 84%; justify-content: center; }
+
+/* ===================== 결과 페이지 재구성 (배경이미지 없이 컴포넌트) =====================
+   .rr = result-redesign. 배경 PNG(skin-bg) 제거, 실제 카드/버튼으로 구성.
+   cqw 쓰는 컴포넌트(rf-marquee-track·exr 순위행)를 위해 .rr에 container context 부여. */
+.rr { container-type: inline-size; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 32px; }
+/* 섹션 내부 요소(카드·버튼)는 좁게 → 바깥 .rr gap(넓게)이 섹션 경계로 보이게 */
+.rr-sec { display: flex; flex-direction: column; gap: 22px; }
+/* 카카오 버튼 아래 짝 버튼 — 간격 좁히고 drop shadow 제거(입체 lip만) */
+.rr-btn-pair { margin-top: -4px; box-shadow: 0 6px 0 #A64A1C; }
+.rr-btn-pair:active { box-shadow: 0 3px 0 #A64A1C; }
+.rr-badge { align-self: center; background: #4A3426; color: #fff; font-weight: 800; font-size: 14px; padding: 8px 18px; border-radius: 999px; box-shadow: var(--sh-soft); }
+
+.rr-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--sh-soft); padding: 20px 18px; }
+.rr-main { text-align: center; }
+.rr-title { font-size: 34px; color: var(--maple); line-height: 1.2; }
+.rr-sub { margin-top: 6px; font-weight: 700; color: var(--ink-soft); font-size: 15px; }
+.rr-drink { margin: 14px 0; }
+.rr-drink img { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(74,52,33,.18)); }
+.rr-desc { margin: 14px 2px 16px; font-size: 13.5px; font-weight: 500; color: var(--ink-soft); line-height: 1.65; word-break: keep-all; text-wrap: pretty; }
+/* 성향 설명 불릿 (감자테스트식 — 풀어쓴 문장 + 원형 마커) */
+.rr-points { list-style: none; margin: 16px auto 4px; padding: 0; max-width: 300px; text-align: left; display: flex; flex-direction: column; gap: 11px; }
+.rr-points li { position: relative; padding-left: 18px; font-size: 13.5px; font-weight: 500; line-height: 1.5; color: var(--ink-soft); word-break: keep-all; text-wrap: pretty; }
+.rr-points li::before { content: ''; position: absolute; left: 3px; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+.rr-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-bottom: 12px; }
+.rr-tag { background: var(--orange); color: #fff; font-weight: 800; font-size: 12.5px; padding: 5px 12px; border-radius: 999px; }
+.rr-why { font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; word-break: keep-all; }
+
+.rr-sectitle { text-align: center; font-weight: 800; font-size: 15px; color: var(--ink); word-break: keep-all; text-wrap: pretty; }
+.rr-sectitle b { color: var(--orange-dk); }
+.rr-combo { display: flex; gap: 12px; }
+.rr-combo-card { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--sh-soft); padding: 12px; text-align: center; }
+.rr-combo-h { font-weight: 800; font-size: 13px; }
+.rr-combo-h.best { color: var(--leaf); }
+.rr-combo-h.worst { color: var(--maple); }
+.rr-combo-img { height: 92px; display: flex; align-items: center; justify-content: center; margin: 6px 0; }
+.rr-combo-img img { max-height: 92px; max-width: 100%; object-fit: contain; }
+.rr-combo-name { font-size: 12.5px; font-weight: 700; color: var(--ink); word-break: keep-all; }
+.rr-combo-score { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 18px; margin-top: 2px; }
+
+.rr-friend { text-align: center; font-weight: 600; font-size: 14px; color: var(--ink-soft); line-height: 1.5; word-break: keep-all; text-wrap: pretty; }
+.rr-friend b { color: var(--orange-dk); }
+.rr-marquee { overflow: hidden; width: 100%; padding: 4px 0; }
+
+.rr-btn { width: 100%; justify-content: center; }
+.rr-btn-outline, .rr-btn-order { background: var(--card); color: var(--orange-dk); border: 2px solid var(--orange); font-weight: 800; box-shadow: var(--sh-soft); }
+.rr-btn-outline:active, .rr-btn-order:active { transform: scale(.98); }
+.rr-again { color: var(--ink-soft); }
+
+.rr-rank-title { text-align: center; font-weight: 800; font-size: 15px; color: var(--orange-dk); margin-bottom: 10px; }
+.rr-rank-empty { margin-top: 12px; padding: 12px 10px; border-radius: 12px; background: #FBF3EC; border: 1px dashed rgba(232,132,60,0.45); text-align: center; font-size: 13px; font-weight: 600; color: var(--ink-soft); line-height: 1.5; word-break: keep-all; }
+.rr-rank-empty b { color: var(--orange-dk); font-weight: 800; }
+
+.rr-cafe-title { text-align: center; font-weight: 800; font-size: 14px; color: var(--orange-dk); margin-bottom: 8px; }
+.rr-cafe-list { display: flex; flex-direction: column; }
+.rr-cafe-row { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px dashed rgba(74,52,33,.14); }
+.rr-cafe-row:last-child { border-bottom: none; }
+.rr-cafe-b { font-weight: 800; font-size: 13px; color: var(--ink); white-space: nowrap; }
+.rr-cafe-m { font-size: 12.5px; color: var(--ink-soft); }
+
+.rr-orderwrap { position: relative; margin-top: 8px; }
+.rr-orderhint { position: absolute; left: 50%; top: -13px; transform: translateX(-50%); background: var(--orange); color: #fff; font-weight: 800; font-size: 12.5px; padding: 5px 14px; border-radius: 999px; white-space: nowrap; box-shadow: var(--sh-soft); z-index: 2; }
+.rr-orderhint::after { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--orange); border-bottom: 0; }
+
+/* 카카오 공유 버튼 — 카카오 옐로우 */
+.rr-btn-kakao { background: #FEE500; color: #3C1E1E; border: 3px solid #D9BC00; font-weight: 800; box-shadow: 0 6px 0 #D9BC00; }
+.rr-btn-kakao:active { transform: translateY(3px); box-shadow: 0 3px 0 #D9BC00; }
+/* 섹션 제목은 바로 아래 궁합 카드와 붙게(여백 과다 방지) */
+.rr-sectitle { margin-bottom: 0; }
+
+/* 결과 캡쳐 공유 유도 멘트 (메인 카드 아래) */
+.rr-capture { text-align: center; font-weight: 600; font-size: 11px; color: var(--ink-soft); opacity: .75; margin-top: 22px; }
+
+/* ===== 가을 감성 지수 결과 (유형 카드) ===== */
+.rr-gauge { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 46px; line-height: 1; color: var(--orange); }
+.rr-gauge span { font-size: 24px; margin-left: 2px; }
+.rr-typename { font-size: 27px; color: var(--maple); line-height: 1.2; margin-top: 6px; word-break: keep-all; }
+.rr-oneliner { font-size: 14px; font-weight: 600; color: var(--ink-soft); margin-top: 8px; word-break: keep-all; line-height: 1.5; text-wrap: pretty; }
+.rr-squirrel { margin: 14px auto 6px; width: 180px; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+.rr-squirrel:has(.rr-sq-emoji) { width: 150px; height: 150px; border-radius: 20px; background: #FBEFDD; border: 1.5px dashed var(--gold); } /* placeholder일 때만 점선박스 */
+.rr-char-img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(74,52,33,.18)); }
+.rr-sq-emoji { font-size: 58px; line-height: 1; }
+.rr-sq-note { font-size: 11px; color: var(--ink-soft); }
+.rr-drinkrec { text-align: center; }
+.rr-drinkrec-label { font-weight: 800; font-size: 14px; color: var(--orange-dk); margin-bottom: 8px; word-break: keep-all; }
+.rr-drinkrec .rr-drink { margin: 4px 0 10px; }
+.rr-drinkrec .rr-drink img { width: 120px; height: 120px; object-fit: contain; filter: drop-shadow(0 6px 10px rgba(74,52,33,.18)); }
+.rr-drinkrec-name { font-family: 'Jalnan','Pretendard',sans-serif; font-size: 20px; color: var(--ink); }
+.rr-drinkrec-reason { font-size: 13px; color: var(--ink-soft); margin-top: 4px; word-break: keep-all; text-wrap: pretty; }
+/* 결과 문항 이모지(퀴즈) */
+.q-emoji { text-align: center; font-size: 46px; margin: 6px 0 10px; }
+.q-scene { margin: 6px auto 12px; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
+.q-scene img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 9px rgba(74,52,33,.16)); }
