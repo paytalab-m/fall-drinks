@@ -1200,12 +1200,12 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
    .rr = result-redesign. 배경 PNG(skin-bg) 제거, 실제 카드/버튼으로 구성.
    cqw 쓰는 컴포넌트(rf-marquee-track·exr 순위행)를 위해 .rr에 container context 부여. */
 .rr { container-type: inline-size; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 32px;
-  min-height: 100dvh; box-sizing: border-box; position: relative; }
-/* 메인과 동일: 포스터를 고정 <img>로 깔기 (background-attachment:fixed는 모바일에서 깨짐) */
+  min-height: 100dvh; box-sizing: border-box; position: relative; z-index: 1; }
+/* 메인과 동일: 포스터를 고정 <img>로 깔기 (background-attachment:fixed는 모바일에서 깨짐).
+   ⚠️ .rr은 container-type 때문에 fixed의 기준이 되므로, rr-bg는 .rr 밖(형제)에 둬야 뷰포트 고정됨 */
 .rr-bg { position: fixed; top: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: var(--maxw); height: 100%;
   object-fit: cover; object-position: center center; z-index: 0; pointer-events: none; }
-.rr > *:not(.rr-bg) { position: relative; z-index: 1; }
 /* 섹션 내부 요소(카드·버튼)는 좁게 → 바깥 .rr gap(넓게)이 섹션 경계로 보이게 */
 .rr-sec { display: flex; flex-direction: column; gap: 22px; }
 /* 카카오 버튼 아래 짝 버튼 — 간격 좁히고 drop shadow 제거(입체 lip만) */

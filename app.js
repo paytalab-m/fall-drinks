@@ -769,8 +769,8 @@ function renderAResult(app, p) {
   const cafeRows = d.cafes.map(c => { const i = c.indexOf(' · '); const b = i >= 0 ? c.slice(0, i) : c; const m = i >= 0 ? c.slice(i + 3) : ''; return `<div class="rv2-cafe-row"><span class="rv2-cafe-b">${b}</span><span class="rv2-cafe-m">${m}</span></div>`; }).join('');
 
   app.innerHTML = `
+    <img class="rr-bg" src="${assetURL('assets/result-skins/start-skin-poster-blank-v4-1962.png')}" alt="" aria-hidden="true" />
     <div class="page rr">
-      <img class="rr-bg" src="${assetURL('assets/result-skins/start-skin-poster-blank-v4-1962.png')}" alt="" aria-hidden="true" />
       <!-- 결과 섹션: 유형 + 음료 + 캡쳐 안내 (내부 타이트) -->
       <section class="rr-sec">
         <div class="rr-badge">🍁 ${aNick}님의 가을 감성 지수</div>
