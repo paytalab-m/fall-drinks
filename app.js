@@ -770,6 +770,7 @@ function renderAResult(app, p) {
 
   app.innerHTML = `
     <div class="page rr">
+      <img class="rr-bg" src="${assetURL('assets/result-skins/start-skin-poster-blank-v4-1962.png')}" alt="" aria-hidden="true" />
       <!-- 결과 섹션: 유형 + 음료 + 캡쳐 안내 (내부 타이트) -->
       <section class="rr-sec">
         <div class="rr-badge">🍁 ${aNick}님의 가을 감성 지수</div>

@@ -760,7 +760,7 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .ss-stack {
   z-index: 1; min-height: 100dvh; width: 100%; box-sizing: border-box;
   display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-  padding: 6dvh 22px 4dvh; gap: 10px;
+  padding: 5dvh 22px 11dvh; gap: 10px;
 }
 .ss-head { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
 .ss-foot { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
@@ -1199,7 +1199,13 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 /* ===================== 결과 페이지 재구성 (배경이미지 없이 컴포넌트) =====================
    .rr = result-redesign. 배경 PNG(skin-bg) 제거, 실제 카드/버튼으로 구성.
    cqw 쓰는 컴포넌트(rf-marquee-track·exr 순위행)를 위해 .rr에 container context 부여. */
-.rr { container-type: inline-size; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 32px; }
+.rr { container-type: inline-size; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 32px;
+  min-height: 100dvh; box-sizing: border-box; position: relative; }
+/* 메인과 동일: 포스터를 고정 <img>로 깔기 (background-attachment:fixed는 모바일에서 깨짐) */
+.rr-bg { position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: var(--maxw); height: 100%;
+  object-fit: cover; object-position: center center; z-index: 0; pointer-events: none; }
+.rr > *:not(.rr-bg) { position: relative; z-index: 1; }
 /* 섹션 내부 요소(카드·버튼)는 좁게 → 바깥 .rr gap(넓게)이 섹션 경계로 보이게 */
 .rr-sec { display: flex; flex-direction: column; gap: 22px; }
 /* 카카오 버튼 아래 짝 버튼 — 간격 좁히고 drop shadow 제거(입체 lip만) */
@@ -1285,5 +1291,6 @@ h2.sub      { font-size: 15.5px; font-weight: 600; color: var(--ink-soft); }
 .rr-drinkrec-reason { font-size: 13px; color: var(--ink-soft); margin-top: 4px; word-break: keep-all; text-wrap: pretty; }
 /* 결과 문항 이모지(퀴즈) */
 .q-emoji { text-align: center; font-size: 46px; margin: 6px 0 10px; }
-.q-scene { margin: 6px auto 12px; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
-.q-scene img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 5px 9px rgba(74,52,33,.16)); }
+/* 퀴즈 이미지 = 라운드 네모 프레임, 크게 */
+.q-scene { margin: 10px auto 18px; width: min(76vw, 300px); aspect-ratio: 1 / 1; border-radius: 28px; overflow: hidden; background: #FFFDF8; border: 3px solid #FFFDF8; box-shadow: 0 8px 20px rgba(74,52,33,.16); }
+.q-scene img { width: 100%; height: 100%; object-fit: cover; display: block; }
