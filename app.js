@@ -257,7 +257,7 @@ async function shareContent(message) {
   }
   // 2) 웹 표준 공유 (앱 밖 모바일 브라우저 — 카톡/사파리/크롬). url만 → OG 카드 1개.
   if (navigator.share) {
-    try { await navigator.share({ title: '가을 음료 취향 테스트', url: link }); return; }
+    try { await navigator.share({ title: '가을 감수성 테스트', url: link }); return; }
     catch (e) { if (e && e.name === 'AbortError') return; /* 사용자가 취소 */ }
   }
   // 3) 폴백: 인앱 "링크 복사" 모달 (데스크톱 등 공유 API 없는 환경)
