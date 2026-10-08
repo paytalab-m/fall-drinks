@@ -567,8 +567,8 @@ function orderPass(scenario, nick, query, menu, orderId) {
   const vid = getVid();
   const pass = orderId && ORDER_PASSLINK[orderId];
   if (pass) {
-    // vid·nick을 패스링크에 실어 UAR search_params에 남김 → 주문/결제 시점의 uid와 vid 연결(익명→신원)
-    const passUrl = pass + (pass.includes('?') ? '&' : '?') + 'vid=' + encodeURIComponent(vid) + '&nick=' + encodeURIComponent((nick || '').slice(0, 20));
+    // 고정마커(집계)+vid·nick(개별)을 패스링크에 실어 UAR search_params에 남김 → 전체 fall 주문 집계 + 주문/결제 시 uid↔vid 연결
+    const passUrl = pass + (pass.includes('?') ? '&' : '?') + 'utm_campaign=fall_curation_2026&vid=' + encodeURIComponent(vid) + '&nick=' + encodeURIComponent((nick || '').slice(0, 20));
     track('order_click', { scenario, vid, nick, orderId, url: passUrl });
     location.href = passUrl;
     return;
@@ -577,7 +577,7 @@ function orderPass(scenario, nick, query, menu, orderId) {
   const params = new URLSearchParams({
     q: query || '',                    // 웹 검색 파라미터(메인에서 q= 로 검색창 채움)
     utm_source: 'fall_taste_test', utm_medium: 'referral',
-    utm_campaign: 'fall_drinks_2026', utm_content: 'fall_taste_test',
+    utm_campaign: 'fall_curation_2026', utm_content: 'fall_taste_test',
     scenario: scenario, vid: vid, nick: (nick || '').slice(0, 20), menu: menu || query || ''
   });
   const url = 'https://app.passorder.co.kr/search?' + params.toString();
