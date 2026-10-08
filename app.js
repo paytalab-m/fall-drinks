@@ -561,12 +561,18 @@ const ORDER_PASSLINK = {
   applejuice:   'https://passorder.kr/fall_applejuice',
   pearsmoothie: 'https://passorder.kr/fall_pearsmoothie',
   persimmon:    'https://passorder.kr/fall_persimmon',
-  // 100% 조합 17 — 만들면 여기 추가(예: grain_cream: 'https://passorder.kr/fall_grain_cream'). 없으면 웹검색 fallback.
+  // 주문은 전부 베이스 음료로 보냄 → 조합 패스링크 불필요. 위 12 베이스로 전부 커버.
 };
 function orderPass(scenario, nick, query, menu, orderId) {
   const vid = getVid();
   const pass = orderId && ORDER_PASSLINK[orderId];
-  if (pass) { track('order_click', { scenario, vid, nick, orderId, url: pass }); location.href = pass; return; }
+  if (pass) {
+    // vid·nick을 패스링크에 실어 UAR search_params에 남김 → 주문/결제 시점의 uid와 vid 연결(익명→신원)
+    const passUrl = pass + (pass.includes('?') ? '&' : '?') + 'vid=' + encodeURIComponent(vid) + '&nick=' + encodeURIComponent((nick || '').slice(0, 20));
+    track('order_click', { scenario, vid, nick, orderId, url: passUrl });
+    location.href = passUrl;
+    return;
+  }
   // fallback: 패스링크 없는 메뉴 → 기존 웹 검색(utm 마커 유지)
   const params = new URLSearchParams({
     q: query || '',                    // 웹 검색 파라미터(메인에서 q= 로 검색창 채움)
@@ -1058,10 +1064,9 @@ function renderBResult(app, p) {
   const aNick = ownerNickFromId(ownerId);
   const myNick = bnick || '나';
   const r = blend(baseDrink, topping);
-  // 주문 검색어/버튼 라벨: 샷=베이스 음료(샷은 매장서 추가) / 100%=실제 메뉴명 / 그 외=베이스 음료명
-  const orderQuery = topping === 'shot' ? d.name : (r.score === 100 ? (r.menu || r.blendName) : d.name);
-  // 주문 패스링크 식별값: 샷·비100%=베이스 / 100%조합=베이스_토핑 (ORDER_PASSLINK 키)
-  const bOrderId = (topping === 'shot' || r.score !== 100) ? baseDrink : `${baseDrink}_${topping}`;
+  // 주문은 항상 베이스 음료로 (조합 메뉴는 주변 판매 매장이 적어 검색 빈약). 결과 화면 표시만 조합명.
+  const orderQuery = d.name;
+  const bOrderId = baseDrink;
 
   // 참여 결과 저장 — 이 링크(ownerId)에 아직 참여 안 했을 때만 1회 기록.
   // (b결과 새로고침·재진입해도 순위판에 중복으로 안 찍힘. revisit 플래그와 무관하게 기록 존재로 판정)

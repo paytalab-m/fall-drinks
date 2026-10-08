@@ -192,19 +192,19 @@ const MATRIX_KEY = {
   appletea: '애플티', applejuice: '사과주스', pearsmoothie: '배', persimmon: '홍시',
 };
 
-// 음료별 픽 가능한 토핑 (assets/blends/{base}_{top}.png 보유 조합만 · 88종, 전 베이스 shot 포함)
+// 음료별 픽 가능한 토핑 (assets/blends/{base}_{top}.png 보유 · 전 베이스 shot + 실제메뉴 토핑 포함 → 18개 100% 조합 전부 노출)
 const BLENDS = {
-  sweetpotato: ['cilantro', 'cinnamon', 'cream', 'greenonion', 'shot', 'yuzu'],
-  pumpkin:     ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'shot', 'yuzu'],
-  blacksesame: ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'shot', 'yuzu'],
-  grain:       ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'shot', 'yuzu'],
-  jujube:      ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'shot', 'yuzu'],
-  chestnut:    ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'kimchi', 'shot', 'yuzu'],
-  toffeenut:   ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
-  glazed:      ['cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
-  appletea:    ['chestnut', 'cilantro', 'cream', 'greenonion', 'honey', 'kimchi', 'shot'],
-  applejuice:  ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot'],
-  pearsmoothie:['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'shot', 'yuzu'],
+  sweetpotato: ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'shot', 'yuzu'],
+  pumpkin:     ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'shot', 'yuzu'],
+  blacksesame: ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'shot', 'yuzu'],
+  grain:       ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'shot', 'yuzu'],
+  jujube:      ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'shot', 'yuzu'],
+  chestnut:    ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
+  toffeenut:   ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
+  glazed:      ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
+  appletea:    ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
+  applejuice:  ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
+  pearsmoothie:['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'shot', 'yuzu'],
   persimmon:   ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
 };
 const GROSS = ['kimchi', 'greenonion', 'cilantro']; // 괴식 → 낮은 점수 → 당황 다람쥐
@@ -223,12 +223,12 @@ const COMBO_MENUS = {
   'sweetpotato+shot': '고구마카페라떼',
   'pumpkin+cream': '단호박크림라떼',
   'blacksesame+cream': '흑임자크림라떼',
-  'blacksesame+shot': '흑임자샷라떼',
+  'blacksesame+shot': '흑임자카페라떼',
   'chestnut+cream': '밤크림라떼',
   'chestnut+honey': '꿀밤라떼',
-  'chestnut+shot': '밤샷라떼',
+  'chestnut+shot': '밤카페라떼',
   'toffeenut+cream': '토피넛크림라떼',
-  'toffeenut+shot': '토피넛샷라떼',
+  'toffeenut+shot': '토피넛카페라떼',
   'glazed+salt': '솔티글레이즈드라떼',
   'glazed+chestnut': '밤글레이즈드라떼',
   'persimmon+matcha': '제주말차홍시라떼',
