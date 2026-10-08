@@ -192,15 +192,15 @@ const MATRIX_KEY = {
   appletea: '애플티', applejuice: '사과주스', pearsmoothie: '배', persimmon: '홍시',
 };
 
-// 음료별 픽 가능한 토핑 (assets/blends/{base}_{top}.png 보유 조합만 · 84종)
+// 음료별 픽 가능한 토핑 (assets/blends/{base}_{top}.png 보유 조합만 · 88종, 전 베이스 shot 포함)
 const BLENDS = {
-  sweetpotato: ['cilantro', 'cinnamon', 'cream', 'greenonion', 'yuzu'],
+  sweetpotato: ['cilantro', 'cinnamon', 'cream', 'greenonion', 'shot', 'yuzu'],
   pumpkin:     ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'shot', 'yuzu'],
-  blacksesame: ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'yuzu'],
+  blacksesame: ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'shot', 'yuzu'],
   grain:       ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'shot', 'yuzu'],
   jujube:      ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'shot', 'yuzu'],
-  chestnut:    ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'kimchi', 'yuzu'],
-  toffeenut:   ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'kimchi', 'yuzu'],
+  chestnut:    ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'kimchi', 'shot', 'yuzu'],
+  toffeenut:   ['chestnut', 'cilantro', 'cinnamon', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
   glazed:      ['cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot', 'yuzu'],
   appletea:    ['chestnut', 'cilantro', 'cream', 'greenonion', 'honey', 'kimchi', 'shot'],
   applejuice:  ['chestnut', 'cilantro', 'cinnamon', 'cream', 'greenonion', 'honey', 'kimchi', 'shot'],

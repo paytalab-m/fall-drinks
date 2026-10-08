@@ -69,7 +69,8 @@ function blend(baseId, toppingId) {
   const menu = COMBO_MENUS[`${baseId}+${toppingId}`] || null; // (참고) 실메뉴 조합
   const base = DRINKS[baseId];
   const topping = TOPPINGS.find(t => t.id === toppingId);
-  const blendName = menu || `${topping.name}${base.name}`; // {토핑}{음료}
+  // 샷(에스프레소 샷)은 COMBO명(토피넛샷라떼 등)보다 우선해서 "{음료} 샷추가"로. 그 외는 COMBO명 or "{토핑}{음료}".
+  const blendName = toppingId === 'shot' ? `${base.name} 샷추가` : (menu || `${topping.name}${base.name}`);
   return { score, grade, menu, blendName, base, topping };
 }
 // 블렌드 결과 이미지 (미리 제작한 조합 이미지)
@@ -544,8 +545,29 @@ function flagClick(tab, field, ownerId) {
 
 // 주문 CTA → 패스오더 웹 검색결과(https://app.passorder.co.kr/search?q=…). q= 로 검색 실행됨(라이브 검증).
 // query = 검색할 메뉴명(비100%=베이스음료 / 100%=실제 메뉴). menu = 웹 결과 메뉴명(귀속용).
-function orderPass(scenario, nick, query, menu) {
+// 주문 패스링크 매핑 (식별값 → passorder.kr 패스링크). 앱있으면 앱·없으면 웹으로 라우팅됨.
+// 없는 메뉴는 아래 웹검색(app.passorder.co.kr/search)으로 자동 fallback → 패스링크 다 안 만들어도 안 깨짐.
+const ORDER_PASSLINK = {
+  // 베이스 음료 12 (고구마만 _2)
+  sweetpotato:  'https://passorder.kr/fall_sweetpotato_2',
+  pumpkin:      'https://passorder.kr/fall_pumpkin',
+  blacksesame:  'https://passorder.kr/fall_blacksesame',
+  grain:        'https://passorder.kr/fall_grain',
+  jujube:       'https://passorder.kr/fall_jujube',
+  chestnut:     'https://passorder.kr/fall_chestnut',
+  toffeenut:    'https://passorder.kr/fall_toffeenut',
+  glazed:       'https://passorder.kr/fall_glazed',
+  appletea:     'https://passorder.kr/fall_appletea',
+  applejuice:   'https://passorder.kr/fall_applejuice',
+  pearsmoothie: 'https://passorder.kr/fall_pearsmoothie',
+  persimmon:    'https://passorder.kr/fall_persimmon',
+  // 100% 조합 17 — 만들면 여기 추가(예: grain_cream: 'https://passorder.kr/fall_grain_cream'). 없으면 웹검색 fallback.
+};
+function orderPass(scenario, nick, query, menu, orderId) {
   const vid = getVid();
+  const pass = orderId && ORDER_PASSLINK[orderId];
+  if (pass) { track('order_click', { scenario, vid, nick, orderId, url: pass }); location.href = pass; return; }
+  // fallback: 패스링크 없는 메뉴 → 기존 웹 검색(utm 마커 유지)
   const params = new URLSearchParams({
     q: query || '',                    // 웹 검색 파라미터(메인에서 q= 로 검색창 채움)
     utm_source: 'fall_taste_test', utm_medium: 'referral',
@@ -616,7 +638,7 @@ function renderAQuiz(app) {
 
 // 가을 감성 지수 진단: 감성 선택 수 → 지수(%) → 8유형
 function diagnoseGaeul(sensScore) {
-  const score = Math.max(0, Math.min(100, Math.round(sensScore))); // 이미 0~100 가중합
+  const score = Math.max(5, Math.min(100, Math.round(sensScore))); // 0~100 가중합, 표시 하한 5%(0% 방지)
   let idx = GAEUL_TYPES.findIndex(t => score >= t.min && score <= t.max);
   if (idx < 0) idx = GAEUL_TYPES.length - 1;
   return { score, typeIdx: idx, type: GAEUL_TYPES[idx] };
@@ -866,11 +888,11 @@ function renderAResult(app, p) {
   });
   app.querySelector('#shareTestBtn')?.addEventListener('click', () => {
     flagClick('result', '테스트공유클릭', ownerId);
-    // 재공유 추적: utm_source=share → 받는 쪽 entry='share' (바이럴 유입 구분 + K-factor 집계)
-    const testUrl = `${SHARE_BASE}/?utm_source=share&utm_medium=viral&utm_campaign=fall_mood_2026`;
+    // 테스트 공유 = 패스링크(패스오더가 재공유·유입 추적). 패스링크 하나로 통일.
+    const testUrl = SHARE_BASE;
     shareContent(`🍂 나 얼마나 가을 타? · 가을 감수성 테스트\n9문항으로 보는 내 가을 감성 지수와 어울리는 한 잔 🐿️\n${testUrl}`);
   });
-  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderPass('a', aNick, drinkKeyword(d.name), d.name); });
+  app.querySelector('#aOrderBtn').addEventListener('click', () => { flagClick('result', '주문클릭', ownerId); orderPass('a', aNick, drinkKeyword(d.name), d.name, baseDrink); });
   app.querySelector('#aAgainBtn')?.addEventListener('click', () => {
     const reset = () => {
       flagClick('result', '다시하기클릭', ownerId);
@@ -900,11 +922,11 @@ function fitOneLine(el, maxPx, minPx) {
 
 // 공유 링크: A 결과판(#a-result)으로 진입 → 본인은 자기 결과 재확인(앱 재진입 불가 대응),
 // 친구는 A 순위판 + "나도 토핑 추가하기" CTA를 봄. 순위판은 ownerId로 서버에서 로드(브라우저 무관).
-const SHARE_BASE = 'https://fall-mood.netlify.app';  // 공유 링크 도메인 = 중립(패스오더/깃허브 비노출)
-// 토핑요청 전용 랜딩(토핑 OG) → 열리면 b-start로 리다이렉트. 테스트 공유와 OG 분리용.
-const TOPPING_LANDING = 'https://fall-mood.netlify.app/t.html';
+const SHARE_BASE = 'https://passorder.kr/fall-drinks';  // 테스트 공유 = 패스링크(패스오더 추적)
+// 토핑요청 전용 랜딩(토핑 OG 분리) → t.html → b-start. 테스트 공유와 OG 카드가 달라야 해서 별도 패스링크.
+const TOPPING_LANDING = 'https://passorder.kr/fall-topping';  // ⚠️ 패스오더 등록 필요: → t.html (query 보존)
 function shareUrlForResult(ownerId, baseDrink) {
-  // 공유 링크 착지 = 토핑 랜딩(t.html) → b-start(토핑 뽑기). 본인(A)은 상단 '순위판 보기'로 결과 재열람.
+  // 토핑 랜딩(t.html, 토핑 OG) → b-start(토핑 뽑기). ownerId·baseDrink는 query로 전달.
   return `${TOPPING_LANDING}?ownerId=${encodeURIComponent(ownerId)}&baseDrink=${baseDrink}`;
 }
 // 순위판(a-board) 공유 URL
@@ -1036,8 +1058,10 @@ function renderBResult(app, p) {
   const aNick = ownerNickFromId(ownerId);
   const myNick = bnick || '나';
   const r = blend(baseDrink, topping);
-  // 주문 검색어/버튼 라벨: 100%=실제 메뉴명 / 그 외=베이스 음료명 (예: 대파밤라떼 → 밤라떼)
-  const orderQuery = r.score === 100 ? (r.menu || r.blendName) : d.name;
+  // 주문 검색어/버튼 라벨: 샷=베이스 음료(샷은 매장서 추가) / 100%=실제 메뉴명 / 그 외=베이스 음료명
+  const orderQuery = topping === 'shot' ? d.name : (r.score === 100 ? (r.menu || r.blendName) : d.name);
+  // 주문 패스링크 식별값: 샷·비100%=베이스 / 100%조합=베이스_토핑 (ORDER_PASSLINK 키)
+  const bOrderId = (topping === 'shot' || r.score !== 100) ? baseDrink : `${baseDrink}_${topping}`;
 
   // 참여 결과 저장 — 이 링크(ownerId)에 아직 참여 안 했을 때만 1회 기록.
   // (b결과 새로고침·재진입해도 순위판에 중복으로 안 찍힘. revisit 플래그와 무관하게 기록 존재로 판정)
@@ -1097,7 +1121,7 @@ function renderBResult(app, p) {
     </div>`;
 
   app.querySelector('#rankBackBtn').addEventListener('click', () => navigate('a-result', { ownerId, baseDrink, owner: '1' }));
-  app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, drinkKeyword(orderQuery), r.blendName); });
+  app.querySelector('#bOrderBtn').addEventListener('click', () => { flagClick('join', '주문클릭', ownerId); orderPass('b', myNick, drinkKeyword(orderQuery), r.blendName, bOrderId); });
   app.querySelector('#bRedoBtn').addEventListener('click', () => { flagClick('join', '나도테스트클릭', ownerId); session.entry = 'from_friend'; location.hash = 'a-start'; });
 
   // 궁합 게이지 차오름 + 숫자 카운트업
